@@ -1,11 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aimmy Models</title>
 </head>
+<style>
+    * {
+        font-family: Arial, sans-serif;
+        color: #fff;
+    }
+
+    body {
+        background-color: #0a0a0a;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    #models p {
+        color: #fff;
+        text-decoration: none;
+        background-color: #171717;
+        padding: 10px;
+        border-radius: 5px;
+        width: 80%;
+        margin: 0;
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+
+    #models p a {
+        color: #fff;
+        text-decoration: none;
+        width: 100%;
+        display: block;
+    }
+
+    #models {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        height: 90%;
+        overflow-y: scroll;
+    }
+
+    h1 {
+        margin: 0;
+        padding: 0;
+        margin-bottom: 10px;
+    }
+
+    #search {
+        width: 80%;
+        padding: 10px;
+        border-radius: 5px;
+        border: none;
+        margin-bottom: 10px;
+        background-color: #171717;
+        color: #fff;
+        border: 1px solid #333;
+    }
+
+    #search:focus {
+        outline: none;
+        border: 1px solid #262626;
+    }
+
+    footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: #0a0a0a;
+        border-top: 1px solid #333;
+        text-align: center;
+        padding-top: 2.5px;
+        padding-bottom: 2.5px;
+    }
+</style>
+
 <body>
-    <h1 >Web page is a work in progress!</h1>
+    <h1>Every Aimmy Model</h1>
+    <input type="text" id="search" placeholder="Search..." onkeyup="searchModels()">
+    <div id="models">
+
+    </div>
+    <footer>
+        <a href="https://github.com/whoswhip/aimmy-models">Source</a> · <a href="https://github.com/whoswhip/aimmy-models/blob/main/search-help.md">Search Help</a>
+    </footer>
 </body>
+<script>
+    let urls = [
+        "https://api.github.com/repos/babyhamsta/aimmy/contents/models",
+    ]
+    let models = [];
+
+    function getModels() {
+        urls.forEach(url => {
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(model => {
+                        models.push(model);
+                        let modelUrl = model.download_url;
+                        let modelName = model.name;
+                        let modelType = model.type;
+                        let modelSize = formatBytes(model.size);
+                        let modelPath = model.path;
+                        let modelHtml = `<a href="${modelUrl}">${modelName} (${modelType}) - ${modelSize}</a>`;
+                        let modelElement = document.createElement("p");
+                        modelElement.innerHTML = modelHtml;
+                        document.getElementById("models").appendChild(modelElement);
+                    });
+                });
+        });
+    }
+
+    function searchModels() {
+        let search = document.getElementById("search").value.trim();
+        let filteredModels = models;
+
+        if (search.includes("!unique")) {
+            filteredModels = Array.from(new Map(filteredModels.map(model => [model.sha, model])).values());
+            search = search.replace("!unique", "").trim();
+        }
+
+        if (search.includes("sort:size")) {
+            filteredModels = filteredModels.sort((a, b) => a.size - b.size);
+            search = search.replace("sort:size", "").trim();
+        }
+        else if (search.includes("sort:-size")) {
+            filteredModels = filteredModels.sort((a, b) => b.size - a.size);
+            search = search.replace("sort:-size", "").trim();
+        }
+
+        if (search.startsWith("sha256:")) {
+            const hash = search.slice(7);
+            filteredModels = filteredModels.filter(model => model.sha.includes(hash));
+        } else if (search) {
+            filteredModels = filteredModels.filter(model => model.name.includes(search));
+        }
+
+        document.getElementById("models").innerHTML = "";
+        filteredModels.forEach(model => {
+            let modelUrl = model.download_url;
+            let modelName = model.name;
+            let modelType = model.type;
+            let modelSize = formatBytes(model.size);
+            let modelPath = model.path;
+            let modelHtml = `<a href="${modelUrl}">${modelName} (${modelType}) - ${modelSize}</a>`;
+            let modelElement = document.createElement("p");
+            modelElement.innerHTML = modelHtml;
+            document.getElementById("models").appendChild(modelElement);
+        });
+    }
+
+    function formatBytes(bytes) {
+        const units = ['bytes', 'KB', 'MB', 'GB', 'TB'];
+        let unitIndex = 0;
+        while (bytes >= 1024 && unitIndex < units.length - 1) {
+            bytes /= 1024;
+            unitIndex++;
+        }
+        return `${bytes.toFixed(2)} ${units[unitIndex]}`;
+    }
+
+    getModels();
+
+</script>
+
 </html>
