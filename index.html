@@ -37,6 +37,13 @@
         margin: 0;
         margin-top: 5px;
         margin-bottom: 5px;
+        transition: 300ms;
+        border: 1px solid #262626;
+    }
+
+    #models p:hover {
+        background-color: #262626;
+        border: 1px solid #333;
     }
 
     #models p a {
@@ -69,12 +76,13 @@
         margin-bottom: 10px;
         background-color: #171717;
         color: #fff;
-        border: 1px solid #333;
+        border: 1px solid #262626;
+        transition: 300ms;
     }
 
     #search:focus {
         outline: none;
-        border: 1px solid #262626;
+        border: 1px solid #333;
     }
 
     footer {
@@ -138,7 +146,7 @@
     }
 
     function searchModels() {
-        let search = document.getElementById("search").value.trim();
+        let search = document.getElementById("search").value.trim().toLowerCase();
         let filteredModels = models;
 
         if (search.includes("!unique")) {
@@ -159,7 +167,7 @@
             const hash = search.slice(7);
             filteredModels = filteredModels.filter(model => model.sha.includes(hash));
         } else if (search) {
-            filteredModels = filteredModels.filter(model => model.name.includes(search));
+            filteredModels = filteredModels.filter(model => model.name.toLowerCase().includes(search));
         }
 
         document.getElementById("models").innerHTML = "";
