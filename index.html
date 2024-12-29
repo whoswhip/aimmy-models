@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aimmy Models</title>
+
+    <meta property="og:title" content="Aimmy Models">
+    <meta property="og:description" content="A collection of models for Aimmy.">
+    <meta property="og:url" content="https://github.com/whoswhip/aimmy-models">
 </head>
 <style>
     * {
@@ -83,11 +87,20 @@
         padding-top: 2.5px;
         padding-bottom: 2.5px;
     }
+    #count {
+        margin: 0;
+        padding: 0;
+        margin-left: auto;
+        margin-right: 10%;
+        margin-top: -2.4rem;
+        margin-bottom: 15px;
+    }
 </style>
 
 <body>
     <h1>Every Aimmy Model</h1>
     <input type="text" id="search" placeholder="Search..." onkeyup="searchModels()">
+    <p id="count"></p>
     <div id="models">
 
     </div>
@@ -118,6 +131,7 @@
                         let modelElement = document.createElement("p");
                         modelElement.innerHTML = modelHtml;
                         document.getElementById("models").appendChild(modelElement);
+                        document.getElementById("count").innerHTML = `Total Models: ${models.length}`;
                     });
                 });
         });
@@ -159,6 +173,7 @@
             let modelElement = document.createElement("p");
             modelElement.innerHTML = modelHtml;
             document.getElementById("models").appendChild(modelElement);
+            document.getElementById("count").innerHTML = `Total Models: ${filteredModels.length}`;
         });
     }
 
