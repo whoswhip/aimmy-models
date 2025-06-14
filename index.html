@@ -27,7 +27,7 @@
         height: 100vh;
     }
 
-    #models p {
+    #files p {
         color: #fff;
         text-decoration: none;
         background-color: #171717;
@@ -41,19 +41,19 @@
         border: 1px solid #262626;
     }
 
-    #models p:hover {
+    #files p:hover {
         background-color: #262626;
         border: 1px solid #333;
     }
 
-    #models p a {
+    #files p a {
         color: #fff;
         text-decoration: none;
         width: 100%;
         display: block;
     }
 
-    #models {
+    #files {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -95,6 +95,7 @@
         padding-top: 2.5px;
         padding-bottom: 2.5px;
     }
+
     #count {
         margin: 0;
         padding: 0;
@@ -107,13 +108,14 @@
 
 <body>
     <h1>Every Aimmy Model</h1>
-    <input type="text" id="search" placeholder="Search..." onkeyup="searchModels()">
+    <input type="text" id="search" placeholder="Search..." onkeyup="search()">
     <p id="count"></p>
-    <div id="models">
+    <div id="files">
 
     </div>
     <footer>
-        <a href="https://github.com/whoswhip/aimmy-models">Source</a> · <a href="https://github.com/whoswhip/aimmy-models/blob/main/search-help.md">Search Help</a>
+        <a href="https://github.com/whoswhip/aimmy-models">Source</a> ·
+        <a href="https://github.com/whoswhip/aimmy-models/blob/main/search-help.md">Search Help</a> ·
     </footer>
 </body>
 <script>
@@ -121,67 +123,91 @@
         "https://api.github.com/repos/babyhamsta/aimmy/contents/models",
         "https://api.github.com/repos/whoswhip/aimmy-models/contents/models"
     ]
-    let models = [];
+    let files = [];
 
-    function getModels() {
+    document.addEventListener("DOMContentLoaded", () => {
+        let urlParams = new URLSearchParams(window.location.search);
+        let type = urlParams.get("type");
+        let footer = document.querySelector("footer");
+        let typeLink = document.createElement("a");
+        if (type === "configs") {
+            urls = ["https://api.github.com/repos/babyhamsta/aimmy/contents/configs", "https://api.github.com/repos/whoswhip/aimmy-models/contents/configs"];
+            getFiles();
+
+            typeLink.href = "?type=models";
+            typeLink.innerHTML = "Models";
+            footer.appendChild(typeLink);
+            let header = document.querySelector("h1");
+            header.innerHTML = "Every Aimmy Config";
+            document.title = "Aimmy Configs";
+        } else {
+            getFiles();
+
+            typeLink.href = "?type=configs";
+            typeLink.innerHTML = "Configs";
+            footer.appendChild(typeLink);
+        }
+    });
+
+    function getFiles() {
         urls.forEach(url => {
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     data.forEach(model => {
-                        models.push(model);
-                        let modelUrl = model.download_url;
-                        let modelName = model.name;
-                        let modelType = model.type;
-                        let modelSize = formatBytes(model.size);
-                        let modelPath = model.path;
-                        let modelHtml = `<a href="${modelUrl}">${modelName} (${modelType}) - ${modelSize}</a>`;
-                        let modelElement = document.createElement("p");
-                        modelElement.innerHTML = modelHtml;
-                        document.getElementById("models").appendChild(modelElement);
-                        document.getElementById("count").innerHTML = `Total Models: ${models.length}`;
+                        files.push(model);
+                        let fileUrl = model.download_url;
+                        let fileName = model.name;
+                        let fileType = model.type;
+                        let fileSize = formatBytes(model.size);
+                        let filePath = model.path;
+                        let fileHtml = `<a href="${fileUrl}">${fileName} - ${fileSize}</a>`;
+                        let fileElement = document.createElement("p");
+                        fileElement.innerHTML = fileHtml;
+                        document.getElementById("files").appendChild(fileElement);
+                        document.getElementById("count").innerHTML = `Total : ${files.length}`;
                     });
                 });
         });
     }
 
-    function searchModels() {
+    function search() {
         let search = document.getElementById("search").value.trim().toLowerCase();
-        let filteredModels = models;
+        let filteredFiles = files;
 
         if (search.includes("!unique")) {
-            filteredModels = Array.from(new Map(filteredModels.map(model => [model.sha, model])).values());
+            filteredFiles = Array.from(new Map(filteredFiles.map(file => [file.sha, file])).values());
             search = search.replace("!unique", "").trim();
         }
 
         if (search.includes("sort:size")) {
-            filteredModels = filteredModels.sort((a, b) => a.size - b.size);
+            filteredFiles = filteredFiles.sort((a, b) => a.size - b.size);
             search = search.replace("sort:size", "").trim();
         }
         else if (search.includes("sort:-size")) {
-            filteredModels = filteredModels.sort((a, b) => b.size - a.size);
+            filteredFiles = filteredFiles.sort((a, b) => b.size - a.size);
             search = search.replace("sort:-size", "").trim();
         }
 
         if (search.startsWith("sha256:")) {
             const hash = search.slice(7);
-            filteredModels = filteredModels.filter(model => model.sha.includes(hash));
+            filteredFiles = filteredFiles.filter(file => file.sha.includes(hash));
         } else if (search) {
-            filteredModels = filteredModels.filter(model => model.name.toLowerCase().includes(search));
+            filteredFiles = filteredFiles.filter(file => file.name.toLowerCase().includes(search));
         }
 
-        document.getElementById("models").innerHTML = "";
-        filteredModels.forEach(model => {
-            let modelUrl = model.download_url;
-            let modelName = model.name;
-            let modelType = model.type;
-            let modelSize = formatBytes(model.size);
-            let modelPath = model.path;
+        document.getElementById("files").innerHTML = "";
+        filteredFiles.forEach(file => {
+            let modelUrl = file.download_url;
+            let modelName = file.name;
+            let modelType = file.type;
+            let modelSize = formatBytes(file.size);
+            let modelPath = file.path;
             let modelHtml = `<a href="${modelUrl}">${modelName} (${modelType}) - ${modelSize}</a>`;
             let modelElement = document.createElement("p");
             modelElement.innerHTML = modelHtml;
-            document.getElementById("models").appendChild(modelElement);
-            document.getElementById("count").innerHTML = `Total Models: ${filteredModels.length}`;
+            document.getElementById("files").appendChild(modelElement);
+            document.getElementById("count").innerHTML = `Total: ${filteredFiles.length}`;
         });
     }
 
@@ -194,8 +220,6 @@
         }
         return `${bytes.toFixed(2)} ${units[unitIndex]}`;
     }
-
-    getModels();
 
 </script>
 
