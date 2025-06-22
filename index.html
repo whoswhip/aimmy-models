@@ -104,6 +104,135 @@
         margin-top: -2.4rem;
         margin-bottom: 15px;
     }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(10, 10, 10, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal {
+        background-color: #171717;
+        border: 1px solid #333;
+        border-radius: 10px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #fff;
+        text-align: center;
+    }
+
+    .modal p {
+        color: #ccc;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    .file-drop-area {
+        border: 2px dashed #333;
+        border-radius: 5px;
+        padding: 40px 20px;
+        text-align: center;
+        background-color: #0a0a0a;
+        margin: 20px 0;
+        transition: 300ms;
+        cursor: pointer;
+    }
+
+    .file-drop-area:hover,
+    .file-drop-area.dragover {
+        border-color: #666;
+        background-color: #1a1a1a;
+    }
+
+    .file-drop-area p {
+        margin: 0;
+        color: #888;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .result-area {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #0a0a0a;
+        border-radius: 5px;
+        border: 1px solid #262626;
+        display: none;
+    }
+
+    .result-area.show {
+        display: block;
+    }
+
+    .result-text {
+        color: #fff;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .hash-text {
+        color: #888;
+        font-family: monospace;
+        font-size: 12px;
+        word-break: break-all;
+        margin: 5px 0;
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        background: none;
+        border: none;
+        color: #888;
+        font-size: 24px;
+        cursor: pointer;
+        transition: 300ms;
+    }
+
+    .close-modal:hover {
+        color: #fff;
+    }
+
+    .modal {
+        position: relative;
+    }
+
 </style>
 
 <body>
@@ -111,11 +240,33 @@
     <input type="text" id="search" placeholder="Search... (ex. !unique)" onkeyup="search()">
     <p id="count"></p>
     <div id="files">
-
     </div>
+
+    <div id="uniqueModal" class="modal-overlay">
+        <div class="modal">
+            <button class="close-modal" onclick="closeUniqueModal()">&times;</button>
+            <h2>Is it unique?</h2>
+            <p>Upload a file to check if it's unique by comparing its SHA-1 hash with the files in our database.</p>
+            
+            <div class="file-drop-area" onclick="document.getElementById('fileInput').click()">
+                <p>Click here or drag and drop a file</p>
+                <input type="file" id="fileInput" class="file-input" onchange="handleFileUpload(event)">
+            </div>
+            
+            <div id="resultArea" class="result-area">
+                <div id="resultText" class="result-text"></div>
+                <div id="hashText" class="hash-text"></div>
+                <div id="matchInfo"></div>
+            </div>
+        </div>
+    </div>
+
+    
     <footer>
         <a href="https://github.com/whoswhip/aimmy-models">Source</a> ·
         <a href="https://github.com/whoswhip/aimmy-models/blob/main/search-help.md">Search Help</a> ·
+        <a href="#" id="cfg-onnx"></a> ·
+        <a href="#" id="is-it-unique" onclick="uniqueModal()">Is it unique?</a>
     </footer>
 </body>
 <script>
@@ -129,14 +280,13 @@
         let urlParams = new URLSearchParams(window.location.search);
         let type = urlParams.get("type");
         let footer = document.querySelector("footer");
-        let typeLink = document.createElement("a");
+        let typeLink = document.getElementById("cfg-onnx");
         if (type === "configs") {
             urls = ["https://api.github.com/repos/babyhamsta/aimmy/contents/configs", "https://api.github.com/repos/whoswhip/aimmy-models/contents/configs"];
             getFiles();
 
             typeLink.href = "?type=models";
             typeLink.innerHTML = "Models";
-            footer.appendChild(typeLink);
             let header = document.querySelector("h1");
             header.innerHTML = "Every Aimmy Config";
             document.title = "Aimmy Configs";
@@ -145,7 +295,6 @@
 
             typeLink.href = "?type=configs";
             typeLink.innerHTML = "Configs";
-            footer.appendChild(typeLink);
         }
     });
 
@@ -189,8 +338,8 @@
             search = search.replace("sort:-size", "").trim();
         }
 
-        if (search.startsWith("sha256:")) {
-            const hash = search.slice(7);
+        if (search.startsWith("githash:")) {
+            const hash = search.slice(8);
             filteredFiles = filteredFiles.filter(file => file.sha.includes(hash));
         } else if (search) {
             filteredFiles = filteredFiles.filter(file => file.name.toLowerCase().includes(search));
@@ -208,6 +357,126 @@
             modelElement.innerHTML = modelHtml;
             document.getElementById("files").appendChild(modelElement);
             document.getElementById("count").innerHTML = `Total: ${filteredFiles.length}`;
+        });
+    }
+
+    function uniqueModal() {
+        document.getElementById('uniqueModal').classList.add('active');
+    }
+
+    function closeUniqueModal() {
+        document.getElementById('uniqueModal').classList.remove('active');
+        document.getElementById('resultArea').classList.remove('show');
+        document.getElementById('fileInput').value = '';
+    }
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        document.getElementById('resultText').textContent = 'Calculating hash...';
+        document.getElementById('resultArea').classList.add('show');
+        
+        calculateSHA1(file).then(hash => {
+            document.getElementById('hashText').textContent = `SHA-1: ${hash}`;
+            
+            const matchingFile = files.find(f => f.sha === hash);
+            
+            if (matchingFile) {
+                document.getElementById('resultText').textContent = '❌ File is NOT unique';
+                document.getElementById('resultText').style.color = '#ff6b6b';
+                document.getElementById('matchInfo').innerHTML = `
+                    <p style="color: #ccc; margin-top: 10px;">
+                        <strong>Match found:</strong><br>
+                        Name: ${matchingFile.name}<br>
+                        Size: ${formatBytes(matchingFile.size)}<br>
+                        Path: ${matchingFile.path}
+                    </p>
+                `;
+            } else {
+                document.getElementById('resultText').textContent = '✅ File appears to be unique';
+                document.getElementById('resultText').style.color = '#51cf66';
+                document.getElementById('matchInfo').innerHTML = `
+                    <p style="color: #ccc; margin-top: 10px;">
+                        No matching SHA-1 hash found in our database.
+                    </p>
+                `;
+            }
+        }).catch(error => {
+            document.getElementById('resultText').textContent = '❌ Error calculating hash';
+            document.getElementById('resultText').style.color = '#ff6b6b';
+            document.getElementById('hashText').textContent = error.message;
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        const dropArea = document.querySelector('.file-drop-area');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
+        });
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                handleFileUpload({ target: { files: files } });
+            }
+        }
+        
+        document.getElementById('uniqueModal').addEventListener('click', (e) => {
+            if (e.target.id === 'uniqueModal') {
+                closeUniqueModal();
+            }
+        });
+    });
+
+    async function calculateSHA1(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const arrayBuffer = e.target.result;
+                    const fileContent = new Uint8Array(arrayBuffer);
+                    
+                    // git object format "blob <size>\0<content>"
+                    const header = `blob ${fileContent.length}\0`;
+                    const headerBytes = new TextEncoder().encode(header);
+                    
+                    const gitObject = new Uint8Array(headerBytes.length + fileContent.length);
+                    gitObject.set(headerBytes, 0);
+                    gitObject.set(fileContent, headerBytes.length);
+                    
+                    const hashBuffer = await crypto.subtle.digest('SHA-1', gitObject);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    resolve(hashHex);
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            reader.onerror = function() {
+                reject(new Error('Failed to read file'));
+            };
+            reader.readAsArrayBuffer(file);
         });
     }
 
