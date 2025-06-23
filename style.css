@@ -1,0 +1,246 @@
+    * {
+        font-family: Arial, sans-serif;
+        color: #fff;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: #0a0a0a;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .file-item {
+        color: #fff;
+        text-decoration: none;
+        background-color: #171717;
+        padding: 10px;
+        border-radius: 5px;
+        width: 80%;
+        margin: 0;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        transition: 300ms;
+        border: 1px solid #262626;
+        max-width: 800px;
+        list-style: none;
+    }
+
+    .file-item:hover {
+        background-color: #262626;
+        border: 1px solid #333;
+    }
+
+    .file-item a {
+        color: #fff;
+        text-decoration: none;
+        width: 100%;
+        display: block;
+    }
+
+    #files {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        height: 87%;
+        overflow-y: scroll;
+    }
+
+    h1 {
+        margin: 0;
+        padding: 0;
+        margin-bottom: 10px;
+    }
+
+    .search-container {
+        display: flex;
+        max-width: 800px;
+        width: 80%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #search {
+        width: calc(100% - 100px);
+        padding: 10px 0 10px 10px;
+        border-radius: 5px 0 0 5px;
+        margin-bottom: 10px;
+        background-color: #171717;
+        color: #fff;
+        border: 1px solid #262626;
+        border-right: none;
+        transition: 300ms;
+        max-width: 800px;
+        box-sizing: border-box;
+        height: 40px;
+        margin: 0;
+    }
+
+    #search:focus {
+        outline: none;
+        border: 1px solid #333;
+        border-right: none;
+    }
+
+    #search:focus + #count {
+        border: 1px solid #333;
+        border-left: none;
+    }
+
+    #count {
+        border: 1px solid #262626;
+        border-left: none;
+        background-color: #171717;
+        padding: 10px 10px 10px 0;
+        box-sizing: border-box;
+        border-radius: 0 5px 5px 0;
+        height: 40px;
+        margin: 0;
+        width: 100px;
+    }
+
+    footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: #0a0a0a;
+        border-top: 1px solid #333;
+        text-align: center;
+        padding-top: 2.5px;
+        padding-bottom: 2.5px;
+    }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(10, 10, 10, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal {
+        background-color: #171717;
+        border: 1px solid #333;
+        border-radius: 10px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal h2 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #fff;
+        text-align: center;
+    }
+
+    .modal p {
+        color: #ccc;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    .file-drop-area {
+        border: 2px dashed #333;
+        border-radius: 5px;
+        padding: 40px 20px;
+        text-align: center;
+        background-color: #0a0a0a;
+        margin: 20px 0;
+        transition: 300ms;
+        cursor: pointer;
+    }
+
+    .file-drop-area:hover,
+    .file-drop-area.dragover {
+        border-color: #666;
+        background-color: #1a1a1a;
+    }
+
+    .file-drop-area p {
+        margin: 0;
+        color: #888;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .result-area {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #0a0a0a;
+        border-radius: 5px;
+        border: 1px solid #262626;
+        display: none;
+    }
+
+    .result-area.show {
+        display: block;
+    }
+
+    .result-text {
+        color: #fff;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .hash-text {
+        color: #888;
+        font-family: monospace;
+        font-size: 12px;
+        word-break: break-all;
+        margin: 5px 0;
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        background: none;
+        border: none;
+        color: #888;
+        font-size: 24px;
+        cursor: pointer;
+        transition: 300ms;
+    }
+
+    .close-modal:hover {
+        color: #fff;
+    }
+
+    .modal {
+        position: relative;
+    }

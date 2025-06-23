@@ -9,236 +9,16 @@
     <meta property="og:title" content="Aimmy Models & Configs">
     <meta property="og:description" content="A collection of models & Configs for Aimmy.">
     <meta property="og:url" content="https://github.com/whoswhip/aimmy-models">
+
+    <link rel="stylesheet" href="style.css"> 
 </head>
-<style>
-    * {
-        font-family: Arial, sans-serif;
-        color: #fff;
-    }
-
-    body {
-        background-color: #0a0a0a;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
-
-    #files p {
-        color: #fff;
-        text-decoration: none;
-        background-color: #171717;
-        padding: 10px;
-        border-radius: 5px;
-        width: 80%;
-        margin: 0;
-        margin-top: 5px;
-        margin-bottom: 5px;
-        transition: 300ms;
-        border: 1px solid #262626;
-    }
-
-    #files p:hover {
-        background-color: #262626;
-        border: 1px solid #333;
-    }
-
-    #files p a {
-        color: #fff;
-        text-decoration: none;
-        width: 100%;
-        display: block;
-    }
-
-    #files {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-        height: 87%;
-        overflow-y: scroll;
-    }
-
-    h1 {
-        margin: 0;
-        padding: 0;
-        margin-bottom: 10px;
-    }
-
-    #search {
-        width: 80%;
-        padding: 10px;
-        border-radius: 5px;
-        border: none;
-        margin-bottom: 10px;
-        background-color: #171717;
-        color: #fff;
-        border: 1px solid #262626;
-        transition: 300ms;
-    }
-
-    #search:focus {
-        outline: none;
-        border: 1px solid #333;
-    }
-
-    footer {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-        background-color: #0a0a0a;
-        border-top: 1px solid #333;
-        text-align: center;
-        padding-top: 2.5px;
-        padding-bottom: 2.5px;
-    }
-
-    #count {
-        margin: 0;
-        padding: 0;
-        margin-left: auto;
-        margin-right: 10%;
-        margin-top: -2.4rem;
-        margin-bottom: 15px;
-    }
-
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(10, 10, 10, 0.8);
-        backdrop-filter: blur(5px);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal-overlay.active {
-        display: flex;
-    }
-
-    .modal {
-        background-color: #171717;
-        border: 1px solid #333;
-        border-radius: 10px;
-        padding: 30px;
-        max-width: 500px;
-        width: 90%;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        animation: modalSlideIn 0.3s ease-out;
-    }
-
-    @keyframes modalSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .modal h2 {
-        margin-top: 0;
-        margin-bottom: 20px;
-        color: #fff;
-        text-align: center;
-    }
-
-    .modal p {
-        color: #ccc;
-        line-height: 1.6;
-        margin-bottom: 15px;
-    }
-
-    .file-drop-area {
-        border: 2px dashed #333;
-        border-radius: 5px;
-        padding: 40px 20px;
-        text-align: center;
-        background-color: #0a0a0a;
-        margin: 20px 0;
-        transition: 300ms;
-        cursor: pointer;
-    }
-
-    .file-drop-area:hover,
-    .file-drop-area.dragover {
-        border-color: #666;
-        background-color: #1a1a1a;
-    }
-
-    .file-drop-area p {
-        margin: 0;
-        color: #888;
-    }
-
-    .file-input {
-        display: none;
-    }
-
-    .result-area {
-        margin-top: 20px;
-        padding: 15px;
-        background-color: #0a0a0a;
-        border-radius: 5px;
-        border: 1px solid #262626;
-        display: none;
-    }
-
-    .result-area.show {
-        display: block;
-    }
-
-    .result-text {
-        color: #fff;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-
-    .hash-text {
-        color: #888;
-        font-family: monospace;
-        font-size: 12px;
-        word-break: break-all;
-        margin: 5px 0;
-    }
-
-    .close-modal {
-        position: absolute;
-        top: 15px;
-        right: 20px;
-        background: none;
-        border: none;
-        color: #888;
-        font-size: 24px;
-        cursor: pointer;
-        transition: 300ms;
-    }
-
-    .close-modal:hover {
-        color: #fff;
-    }
-
-    .modal {
-        position: relative;
-    }
-
-</style>
 
 <body>
     <h1>Every Aimmy Model</h1>
-    <input type="text" id="search" placeholder="Search... (ex. !unique)" onkeyup="search()">
-    <p id="count"></p>
+    <div class="search-container">
+        <input type="text" id="search" placeholder="Search... (ex. !unique)" onkeyup="search()">
+        <p id="count">380 Models</p>
+    </div>
     <div id="files">
     </div>
 
@@ -247,12 +27,12 @@
             <button class="close-modal" onclick="closeUniqueModal()">&times;</button>
             <h2>Is it unique?</h2>
             <p>Upload a file to check if it's unique by comparing its SHA-1 hash with the files in our database.</p>
-            
+
             <div class="file-drop-area" onclick="document.getElementById('fileInput').click()">
                 <p>Click here or drag and drop a file</p>
                 <input type="file" id="fileInput" class="file-input" onchange="handleFileUpload(event)">
             </div>
-            
+
             <div id="resultArea" class="result-area">
                 <div id="resultText" class="result-text"></div>
                 <div id="hashText" class="hash-text"></div>
@@ -261,7 +41,7 @@
         </div>
     </div>
 
-    
+
     <footer>
         <a href="https://github.com/whoswhip/aimmy-models">Source</a> ·
         <a href="https://github.com/whoswhip/aimmy-models/blob/main/search-help.md">Search Help</a> ·
@@ -275,10 +55,11 @@
         "https://api.github.com/repos/whoswhip/aimmy-models/contents/models"
     ]
     let files = [];
+    let type = "models";
 
     document.addEventListener("DOMContentLoaded", () => {
         let urlParams = new URLSearchParams(window.location.search);
-        let type = urlParams.get("type");
+        type = urlParams.get("type");
         let footer = document.querySelector("footer");
         let typeLink = document.getElementById("cfg-onnx");
         if (type === "configs") {
@@ -310,11 +91,12 @@
                         let fileType = model.type;
                         let fileSize = formatBytes(model.size);
                         let filePath = model.path;
-                        let fileHtml = `<a href="${fileUrl}">${fileName} - ${fileSize}</a>`;
-                        let fileElement = document.createElement("p");
+                        let fileHtml = `<a href="${fileUrl}" style="display:flex;"><span style="width: 80%; display: inline-block;">${fileName}</span>  <span style="width: 20%; text-align: right; margin-left: auto; display: inline-block;">${fileSize}</span></a>`;
+                        let fileElement = document.createElement("li");
+                        fileElement.className = "file-item";
                         fileElement.innerHTML = fileHtml;
                         document.getElementById("files").appendChild(fileElement);
-                        document.getElementById("count").innerHTML = `Total : ${files.length}`;
+                        document.getElementById("count").innerHTML = `${files.length} ${type.charAt(0).toUpperCase() + type.slice(1)}`;
                     });
                 });
         });
@@ -373,15 +155,15 @@
     function handleFileUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
-        
+
         document.getElementById('resultText').textContent = 'Calculating hash...';
         document.getElementById('resultArea').classList.add('show');
-        
+
         calculateSHA1(file).then(hash => {
             document.getElementById('hashText').textContent = `SHA-1: ${hash}`;
-            
+
             const matchingFile = files.find(f => f.sha === hash);
-            
+
             if (matchingFile) {
                 document.getElementById('resultText').textContent = '❌ File is NOT unique';
                 document.getElementById('resultText').style.color = '#ff6b6b';
@@ -410,38 +192,38 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        
+
         const dropArea = document.querySelector('.file-drop-area');
-        
+
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, preventDefaults, false);
         });
-        
+
         function preventDefaults(e) {
             e.preventDefault();
             e.stopPropagation();
         }
-        
+
         ['dragenter', 'dragover'].forEach(eventName => {
             dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
         });
-        
+
         ['dragleave', 'drop'].forEach(eventName => {
             dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
         });
-        
+
         dropArea.addEventListener('drop', handleDrop, false);
-        
+
         function handleDrop(e) {
             const dt = e.dataTransfer;
             const files = dt.files;
-            
+
             if (files.length > 0) {
                 document.getElementById('fileInput').files = files;
                 handleFileUpload({ target: { files: files } });
             }
         }
-        
+
         document.getElementById('uniqueModal').addEventListener('click', (e) => {
             if (e.target.id === 'uniqueModal') {
                 closeUniqueModal();
@@ -452,19 +234,19 @@
     async function calculateSHA1(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = async function(e) {
+            reader.onload = async function (e) {
                 try {
                     const arrayBuffer = e.target.result;
                     const fileContent = new Uint8Array(arrayBuffer);
-                    
+
                     // git object format "blob <size>\0<content>"
                     const header = `blob ${fileContent.length}\0`;
                     const headerBytes = new TextEncoder().encode(header);
-                    
+
                     const gitObject = new Uint8Array(headerBytes.length + fileContent.length);
                     gitObject.set(headerBytes, 0);
                     gitObject.set(fileContent, headerBytes.length);
-                    
+
                     const hashBuffer = await crypto.subtle.digest('SHA-1', gitObject);
                     const hashArray = Array.from(new Uint8Array(hashBuffer));
                     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
@@ -473,7 +255,7 @@
                     reject(error);
                 }
             };
-            reader.onerror = function() {
+            reader.onerror = function () {
                 reject(new Error('Failed to read file'));
             };
             reader.readAsArrayBuffer(file);
