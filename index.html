@@ -17,7 +17,7 @@
     <h1>Every Aimmy Model</h1>
     <div class="search-container">
         <input type="text" id="search" placeholder="Search... (ex. !unique)" onkeyup="search()">
-        <p id="count">380 Models</p>
+        <p id="count"></p>
     </div>
     <div id="files">
     </div>
@@ -59,7 +59,7 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         let urlParams = new URLSearchParams(window.location.search);
-        type = urlParams.get("type");
+        type = urlParams.get("type") ? urlParams.get("type") : "models";
         let footer = document.querySelector("footer");
         let typeLink = document.getElementById("cfg-onnx");
         if (type === "configs") {
