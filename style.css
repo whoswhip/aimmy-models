@@ -103,6 +103,7 @@
         height: 40px;
         margin: 0;
         width: 100px;
+        transition: 300ms;
     }
 
     footer {
