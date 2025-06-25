@@ -104,6 +104,7 @@
         margin: 0;
         width: 100px;
         transition: 300ms;
+        text-align: right;
     }
 
     footer {
