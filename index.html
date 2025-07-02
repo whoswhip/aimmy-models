@@ -10,7 +10,7 @@
     <meta property="og:description" content="A collection of models & Configs for Aimmy.">
     <meta property="og:url" content="https://github.com/whoswhip/aimmy-models">
 
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -50,56 +50,146 @@
     </footer>
 </body>
 <script>
-    let urls = [
-        "https://api.github.com/repos/whoswhip/aimmy/contents/models",
-        "https://api.github.com/repos/whoswhip/aimmy-models/contents/models"
-    ]
+    const API_ENDPOINTS = {
+        models: {
+            primary: [
+                "https://api.github.com/repos/whoswhip/aimmy-models/contents/models",
+                "https://api.github.com/repos/Babyhamsta/aimmy/contents/models"
+            ],
+            backup: [
+                "https://api.github.com/repos/whoswhip/aimmy/contents/models",
+                "https://git.whoswhip.top/api/v1/repos/whoswhip/aimmy-models/contents/models",
+            ]
+        },
+        configs: {
+            primary: [
+                "https://api.github.com/repos/whoswhip/aimmy-models/contents/configs",
+                "https://api.github.com/repos/Babyhamsta/aimmy/contents/configs"
+            ],
+            backup: [
+                "https://api.github.com/repos/whoswhip/aimmy/contents/configs",
+                "https://git.whoswhip.top/api/v1/repos/whoswhip/aimmy-models/contents/configs",
+            ]
+        }
+    };
+    const CONFIG = {
+        models: {
+            title: "Every Aimmy Model",
+            documentTitle: "Aimmy Models",
+            linkHref: "?type=configs",
+            linkText: "Configs"
+        },
+        configs: {
+            title: "Every Aimmy Config",
+            documentTitle: "Aimmy Configs",
+            linkHref: "?type=models",
+            linkText: "Models"
+        }
+    };
+
     let files = [];
-    let type = "models";
+    let currentType = "models";
 
     document.addEventListener("DOMContentLoaded", () => {
-        let urlParams = new URLSearchParams(window.location.search);
-        type = urlParams.get("type") ? urlParams.get("type") : "models";
-        let footer = document.querySelector("footer");
-        let typeLink = document.getElementById("cfg-onnx");
-        if (type === "configs") {
-            urls = ["https://api.github.com/repos/whoswhip/aimmy/contents/configs", "https://api.github.com/repos/whoswhip/aimmy-models/contents/configs"];
-            getFiles();
-
-            typeLink.href = "?type=models";
-            typeLink.innerHTML = "Models";
-            let header = document.querySelector("h1");
-            header.innerHTML = "Every Aimmy Config";
-            document.title = "Aimmy Configs";
-        } else {
-            getFiles();
-
-            typeLink.href = "?type=configs";
-            typeLink.innerHTML = "Configs";
-        }
+        initializePage();
     });
 
+    function initializePage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        currentType = urlParams.get("type") || "models";
+
+        updatePageForType(currentType);
+        getFiles();
+    }
+
+    function updatePageForType(type) {
+        const elements = {
+            header: document.querySelector("h1"),
+            typeLink: document.getElementById("cfg-onnx")
+        };
+
+        const typeConfig = CONFIG[type] || CONFIG.models;
+
+        elements.header.textContent = typeConfig.title;
+        document.title = typeConfig.documentTitle;
+        elements.typeLink.href = typeConfig.linkHref;
+        elements.typeLink.textContent = typeConfig.linkText;
+    }
+
     function getFiles() {
-        urls.forEach(url => {
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(model => {
-                        files.push(model);
-                        let fileUrl = model.download_url;
-                        let fileName = model.name;
-                        let fileType = model.type;
-                        let fileSize = formatBytes(model.size);
-                        let filePath = model.path;
-                        let fileHtml = `<a href="${fileUrl}" style="display:flex;"><span style="width: 80%; display: inline-block;">${fileName}</span>  <span style="width: 20%; text-align: right; margin-left: auto; display: inline-block;">${fileSize}</span></a>`;
-                        let fileElement = document.createElement("li");
-                        fileElement.className = "file-item";
-                        fileElement.innerHTML = fileHtml;
-                        document.getElementById("files").appendChild(fileElement);
-                        document.getElementById("count").innerHTML = `${files.length} ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-                    });
-                });
+        const endpoints = API_ENDPOINTS[currentType];
+        if (!endpoints) {
+            console.error(`No endpoints configured for type: ${currentType}`);
+            return;
+        }
+
+        files = [];
+        document.getElementById("files").innerHTML = "";
+        updateFileCount();
+
+        fetchFromEndpoints(endpoints.primary)
+            .then(success => {
+                if (!success && endpoints.backup) {
+                    console.log('All primary endpoints failed, trying backup endpoints...');
+                    return fetchFromEndpoints(endpoints.backup);
+                }
+                return success;
+            })
+            .catch(error => {
+                console.error('All endpoints failed:', error);
+            });
+    }
+
+    async function fetchFromEndpoints(urls) {
+        let hasSuccess = false;
+        const fetchPromises = urls.map(url =>
+            fetchSingleEndpoint(url)
+                .then(() => {
+                    hasSuccess = true;
+                })
+                .catch(error => {
+                    console.log(`Failed to fetch from ${url}:`, error);
+                })
+        );
+
+        await Promise.allSettled(fetchPromises);
+        return hasSuccess;
+    }
+
+    async function fetchSingleEndpoint(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const existingHashes = new Set(files.map(f => f.sha));
+
+        data.forEach(model => {
+            if (!existingHashes.has(model.sha)) {
+                files.push(model);
+                addFileToDOM(model);
+                existingHashes.add(model.sha);
+            }
         });
+
+        updateFileCount();
+    }
+
+    function addFileToDOM(model) {
+        const fileUrl = model.download_url;
+        const fileName = model.name;
+        const fileSize = formatBytes(model.size);
+        const fileHtml = `<a href="${fileUrl}" style="display:flex;"><span style="width: 80%; display: inline-block;">${fileName}</span>  <span style="width: 20%; text-align: right; margin-left: auto; display: inline-block;">${fileSize}</span></a>`;
+        const fileElement = document.createElement("li");
+        fileElement.className = "file-item";
+        fileElement.innerHTML = fileHtml;
+        document.getElementById("files").appendChild(fileElement);
+    }
+
+    function updateFileCount() {
+        const typeLabel = currentType.charAt(0).toUpperCase() + currentType.slice(1);
+        document.getElementById("count").innerHTML = `${files.length} ${typeLabel}`;
     }
 
     function search() {
@@ -137,7 +227,7 @@
             modelElement.className = "file-item";
             modelElement.innerHTML = modelHtml;
             document.getElementById("files").appendChild(modelElement);
-            document.getElementById("count").innerHTML = `${filteredFiles.length} ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            document.getElementById("count").innerHTML = `${filteredFiles.length} ${currentType.charAt(0).toUpperCase() + currentType.slice(1)}`;
         });
     }
 
