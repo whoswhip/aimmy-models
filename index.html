@@ -22,6 +22,11 @@
     <div id="files">
     </div>
 
+    <div id="contextMenu" class="context-menu">
+        <div class="context-item" onclick="downloadFile()">Download</div>
+        <div class="context-item" onclick="copyGitHash()">Copy GitHash</div>
+    </div>
+
     <div id="uniqueModal" class="modal-overlay">
         <div class="modal">
             <button class="close-modal" onclick="closeUniqueModal()">&times;</button>
@@ -89,6 +94,7 @@
 
     let files = [];
     let currentType = "models";
+    let contextMenuTarget = null;
 
     document.addEventListener("DOMContentLoaded", () => {
         initializePage();
@@ -178,12 +184,16 @@
 
     function addFileToDOM(model) {
         const fileUrl = model.download_url;
-        const fileName = model.name;
+        const fileName = model.name.replace(/_/g, ' ');
         const fileSize = formatBytes(model.size);
         const fileHtml = `<a href="${fileUrl}" style="display:flex;"><span style="width: 80%; display: inline-block;">${fileName}</span>  <span style="width: 20%; text-align: right; margin-left: auto; display: inline-block;">${fileSize}</span></a>`;
         const fileElement = document.createElement("li");
         fileElement.className = "file-item";
         fileElement.innerHTML = fileHtml;
+        fileElement.setAttribute('data-sha', model.sha);
+        fileElement.setAttribute('data-url', fileUrl);
+        fileElement.setAttribute('data-name', model.name);
+        fileElement.addEventListener('contextmenu', showContextMenu);
         document.getElementById("files").appendChild(fileElement);
     }
 
@@ -210,8 +220,9 @@
             search = search.replace("sort:-size", "").trim();
         }
 
-        if (search.startsWith("githash:")) {
-            const hash = search.slice(8);
+        if (search.includes("githash:")) {
+            const hashIndex = search.indexOf("githash:");
+            const hash = search.slice(hashIndex + 8).split(' ')[0];
             filteredFiles = filteredFiles.filter(file => file.sha.includes(hash));
         } else if (search) {
             filteredFiles = filteredFiles.filter(file => file.name.toLowerCase().includes(search));
@@ -220,65 +231,57 @@
         document.getElementById("files").innerHTML = "";
         filteredFiles.forEach(file => {
             let fileUrl = file.download_url;
-            let fileName = file.name;
+            let fileName = file.name.replace(/_/g, ' ');
             let fileSize = formatBytes(file.size);
             let modelHtml = `<a href="${fileUrl}" style="display:flex;"><span style="width: 80%; display: inline-block;">${fileName}</span>  <span style="width: 20%; text-align: right; margin-left: auto; display: inline-block;">${fileSize}</span></a>`;
             let modelElement = document.createElement("li");
             modelElement.className = "file-item";
             modelElement.innerHTML = modelHtml;
+            modelElement.setAttribute('data-sha', file.sha);
+            modelElement.setAttribute('data-url', fileUrl);
+            modelElement.setAttribute('data-name', file.name);
+            modelElement.addEventListener('contextmenu', showContextMenu);
             document.getElementById("files").appendChild(modelElement);
             document.getElementById("count").innerHTML = `${filteredFiles.length} ${currentType.charAt(0).toUpperCase() + currentType.slice(1)}`;
         });
     }
 
-    function uniqueModal() {
-        document.getElementById('uniqueModal').classList.add('active');
+    function showContextMenu(e) {
+        e.preventDefault();
+        contextMenuTarget = e.currentTarget;
+        const contextMenu = document.getElementById('contextMenu');
+        contextMenu.style.display = 'block';
+        contextMenu.style.left = e.pageX + 'px';
+        contextMenu.style.top = e.pageY + 'px';
     }
 
-    function closeUniqueModal() {
-        document.getElementById('uniqueModal').classList.remove('active');
-        document.getElementById('resultArea').classList.remove('show');
-        document.getElementById('fileInput').value = '';
+    function hideContextMenu() {
+        document.getElementById('contextMenu').style.display = 'none';
+        contextMenuTarget = null;
     }
 
-    function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        document.getElementById('resultText').textContent = 'Calculating hash...';
-        document.getElementById('resultArea').classList.add('show');
-
-        calculateSHA1(file).then(hash => {
-            document.getElementById('hashText').textContent = `SHA-1: ${hash}`;
-
-            const matchingFile = files.find(f => f.sha === hash);
-
-            if (matchingFile) {
-                document.getElementById('resultText').textContent = '❌ File is NOT unique';
-                document.getElementById('resultText').style.color = '#ff6b6b';
-                document.getElementById('matchInfo').innerHTML = `
-                    <p style="color: #ccc; margin-top: 10px;">
-                        <strong>Match found:</strong><br>
-                        Name: ${matchingFile.name}<br>
-                        Size: ${formatBytes(matchingFile.size)}<br>
-                        Path: ${matchingFile.path}
-                    </p>
-                `;
-            } else {
-                document.getElementById('resultText').textContent = '✅ File appears to be unique';
-                document.getElementById('resultText').style.color = '#51cf66';
-                document.getElementById('matchInfo').innerHTML = `
-                    <p style="color: #ccc; margin-top: 10px;">
-                        No matching SHA-1 hash found in our database.
-                    </p>
-                `;
-            }
-        }).catch(error => {
-            document.getElementById('resultText').textContent = '❌ Error calculating hash';
-            document.getElementById('resultText').style.color = '#ff6b6b';
-            document.getElementById('hashText').textContent = error.message;
-        });
+    function downloadFile() {
+        if (contextMenuTarget) {
+            const url = contextMenuTarget.getAttribute('data-url');
+            window.open(url, '_blank');
+        }
+        hideContextMenu();
     }
+
+    function copyGitHash() {
+        if (contextMenuTarget) {
+            const sha = contextMenuTarget.getAttribute('data-sha');
+            navigator.clipboard.writeText(sha).then(() => {
+                console.log('GitHash copied to clipboard');
+            }).catch(err => {
+                console.error('Failed to copy GitHash:', err);
+            });
+        }
+        hideContextMenu();
+    }
+
+    document.addEventListener('click', hideContextMenu);
+    document.addEventListener('scroll', hideContextMenu);
 
     document.addEventListener('DOMContentLoaded', () => {
 

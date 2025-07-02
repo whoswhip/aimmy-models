@@ -88,7 +88,7 @@
         border-right: none;
     }
 
-    #search:focus + #count {
+    #search:focus+#count {
         border: 1px solid #333;
         border-left: none;
     }
@@ -245,4 +245,31 @@
 
     .modal {
         position: relative;
+    }
+
+    .context-menu {
+        position: absolute;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        display: none;
+        z-index: 1000;
+        min-width: 150px;
+    }
+
+    .context-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        color: #fff;
+        font-size: 14px;
+        border-bottom: 1px solid #333;
+    }
+
+    .context-item:last-child {
+        border-bottom: none;
+    }
+
+    .context-item:hover {
+        background: #2a2a2a;
     }
