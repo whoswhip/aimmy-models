@@ -24,7 +24,9 @@
 
     <div id="contextMenu" class="context-menu">
         <div class="context-item" onclick="downloadFile()">Download</div>
+        <div class="context-item" onclick="openInNetron()">Inspect</div>
         <div class="context-item" onclick="copyGitHash()">Copy GitHash</div>
+        <div class="context-item" onclick="copyFileUrl()">Copy File URL</div>
     </div>
 
     <div id="uniqueModal" class="modal-overlay">
@@ -268,14 +270,33 @@
         hideContextMenu();
     }
 
+    function openInNetron() {
+        if (contextMenuTarget) {
+            const url = contextMenuTarget.getAttribute('data-url');
+            const netronUrl = `https://netron.app/?url=${encodeURIComponent(url)}`;
+            window.open(netronUrl, '_blank');
+        }
+        hideContextMenu();
+    }
+
     function copyGitHash() {
         if (contextMenuTarget) {
             const sha = contextMenuTarget.getAttribute('data-sha');
-            navigator.clipboard.writeText(sha).then(() => {
-                console.log('GitHash copied to clipboard');
-            }).catch(err => {
-                console.error('Failed to copy GitHash:', err);
-            });
+            navigator.clipboard.writeText(sha)
+                .catch(err => {
+                    console.error('Failed to copy GitHash:', err);
+                });
+        }
+        hideContextMenu();
+    }
+
+    function copyFileUrl() {
+        if (contextMenuTarget) {
+            const url = contextMenuTarget.getAttribute('data-url');
+            navigator.clipboard.writeText(url)
+                .catch(err => {
+                    console.error('Failed to copy File URL:', err);
+                });
         }
         hideContextMenu();
     }
