@@ -304,6 +304,55 @@
     document.addEventListener('click', hideContextMenu);
     document.addEventListener('scroll', hideContextMenu);
 
+    function uniqueModal() {
+        document.getElementById('uniqueModal').classList.add('active');
+    }
+
+    function closeUniqueModal() {
+        document.getElementById('uniqueModal').classList.remove('active');
+        document.getElementById('resultArea').classList.remove('show');
+        document.getElementById('fileInput').value = '';
+    }
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        document.getElementById('resultText').textContent = 'Calculating hash...';
+        document.getElementById('resultArea').classList.add('show');
+
+        calculateSHA1(file).then(hash => {
+            document.getElementById('hashText').textContent = `SHA-1: ${hash}`;
+
+            const matchingFile = files.find(f => f.sha === hash);
+
+            if (matchingFile) {
+                document.getElementById('resultText').textContent = '❌ File is NOT unique';
+                document.getElementById('resultText').style.color = '#ff6b6b';
+                document.getElementById('matchInfo').innerHTML = `
+                    <p style="color: #ccc; margin-top: 10px;">
+                        <strong>Match found:</strong><br>
+                        Name: ${matchingFile.name}<br>
+                        Size: ${formatBytes(matchingFile.size)}<br>
+                        Path: <a href="${matchingFile.path}" target="_blank">${matchingFile.path}</a>
+                    </p>
+                `;
+            } else {
+                document.getElementById('resultText').textContent = '✅ File appears to be unique';
+                document.getElementById('resultText').style.color = '#51cf66';
+                document.getElementById('matchInfo').innerHTML = `
+                    <p style="color: #ccc; margin-top: 10px;">
+                        No matching SHA-1 hash found in our database.
+                    </p>
+                `;
+            }
+        }).catch(error => {
+            document.getElementById('resultText').textContent = '❌ Error calculating hash';
+            document.getElementById('resultText').style.color = '#ff6b6b';
+            document.getElementById('hashText').textContent = error.message;
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
 
         const dropArea = document.querySelector('.file-drop-area');
