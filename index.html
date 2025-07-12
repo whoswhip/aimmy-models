@@ -107,7 +107,17 @@
         currentType = urlParams.get("type") || "models";
 
         updatePageForType(currentType);
-        getFiles();
+        
+        const hash = window.location.hash.substring(1).toLowerCase();
+        if (hash) {
+            document.getElementById("search").value = hash;
+        }
+        
+        getFiles().then(() => {
+            if (hash) {
+                search();
+            }
+        });
     }
 
     function updatePageForType(type) {
@@ -124,7 +134,7 @@
         elements.typeLink.textContent = typeConfig.linkText;
     }
 
-    function getFiles() {
+    async function getFiles() {
         const endpoints = API_ENDPOINTS[currentType];
         if (!endpoints) {
             console.error(`No endpoints configured for type: ${currentType}`);
@@ -135,17 +145,15 @@
         document.getElementById("files").innerHTML = "";
         updateFileCount();
 
-        fetchFromEndpoints(endpoints.primary)
-            .then(success => {
-                if (!success && endpoints.backup) {
-                    console.log('All primary endpoints failed, trying backup endpoints...');
-                    return fetchFromEndpoints(endpoints.backup);
-                }
-                return success;
-            })
-            .catch(error => {
-                console.error('All endpoints failed:', error);
-            });
+        try {
+            const success = await fetchFromEndpoints(endpoints.primary);
+            if (!success && endpoints.backup) {
+                console.log('All primary endpoints failed, trying backup endpoints...');
+                await fetchFromEndpoints(endpoints.backup);
+            }
+        } catch (error) {
+            console.error('All endpoints failed:', error);
+        }
     }
 
     async function fetchFromEndpoints(urls) {
