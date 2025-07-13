@@ -38,7 +38,7 @@ jobs:
       run: |
         git config --global user.name "GitHub Actions Bot"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        cd ../../..
+        cd ../../../../../
         git add models/metadata.json
         git commit -m "Update metadata.json [from ONNX-MD-Parser workflow]"
         git push origin HEAD
