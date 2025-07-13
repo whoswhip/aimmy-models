@@ -39,7 +39,7 @@ class Program
             return;
         }
 
-        Console.WriteLine($"Found {onnxFiles.Length} ONNX files in {rootDirectory}.");
+        Console.WriteLine($"[INFO] Found {onnxFiles.Length} ONNX files in {rootDirectory}.");
 
         var existingMetadata = LoadExisting(metadataPath);
         var hashes = new HashSet<string>(existingMetadata.Select(m => m.Hash));
