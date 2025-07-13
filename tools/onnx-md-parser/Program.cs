@@ -116,7 +116,7 @@ class Program
                 Author = metadata.ContainsKey("author") ? metadata["author"] : "N/A",
                 License = metadata.ContainsKey("license") ? metadata["license"] : "N/A",
                 Description = metadata.ContainsKey("description") ? metadata["description"] : "No description provided.",
-                Created = metadata.ContainsKey("created") ? metadata["created"] : DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                Created = metadata.ContainsKey("date") ? metadata["date"] : DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 Version = metadata.ContainsKey("version") ? metadata["version"] : model.ProducerVersion ?? "N/A", /* metadata["version"] should be the yolo/onnx version, 
                                                                                                                    * its also what's shown as the version in netron.app */
                 ModelType = metadata.ContainsKey("task") ? metadata["task"] : "N/A",
