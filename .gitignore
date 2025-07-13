@@ -313,3 +313,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# might break the github action
+models/metadata.json 
