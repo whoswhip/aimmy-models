@@ -32,13 +32,13 @@ jobs:
     - name: Run ONNX-MD-Parser on ONNX models
       run: |
         cd tools/onnx-md-parser/bin/Release/net8.0
-        ./onnx-md-parser ../../../../../models
+        ./onnx-md-parser ../../../../../models ../../../../../models 
 
     - name: Commit and Push Metadata
       run: |
         git config --global user.name "GitHub Actions Bot"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        cd ../../../../
+        cd ../../../../../
         git add models/metadata.json
         git commit -m "Update metadata.json [from ONNX-MD-Parser workflow]"
         git push origin HEAD
