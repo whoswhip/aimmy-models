@@ -4,7 +4,10 @@ name: Deploy Jekyll with GitHub Pages dependencies preinstalled
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["main"]
+    paths:
+    - '.github/workflows/jekyll-gh-pages.yml'
+    - 'index.html'
+    - 'style.css'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
