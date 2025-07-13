@@ -32,7 +32,7 @@ jobs:
     - name: Run ONNX-MD-Parser on ONNX models
       run: |
         cd tools/onnx-md-parser/bin/Release/net8.0
-        ./onnx-md-parser ../../models
+        ./onnx-md-parser ../../../../../models
 
     - name: Commit and Push Metadata
       run: |
