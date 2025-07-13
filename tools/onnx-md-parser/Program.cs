@@ -92,11 +92,11 @@ class Program
                 Author = metadata.ContainsKey("author") ? metadata["author"] : "N/A",
                 License = metadata.ContainsKey("license") ? metadata["license"] : "N/A",
                 Description = metadata.ContainsKey("description") ? metadata["description"] : "No description provided.",
-                Created = DateTime.UtcNow.ToString("o"),
-                Version = metadata.ContainsKey("version") ? metadata["version"] : "1.0.0",
-                ModelType = metadata.ContainsKey("model_type") ? metadata["model_type"] : "N/A",
-                Classes = metadata.ContainsKey("classes") ? metadata["classes"] : "N/A",
-                Labels = metadata.ContainsKey("labels") ? metadata["labels"] : "N/A",
+                Created = metadata.ContainsKey("created") ? metadata["created"] : DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                Version = model.ProducerVersion ?? "N/A",
+                ModelType = metadata.ContainsKey("task") ? metadata["task"] : "N/A",
+                Classes = metadata.ContainsKey("nc") ? metadata["nc"] : "N/A",
+                Labels = metadata.ContainsKey("names") ? metadata["names"] : "N/A",
                 ImageSize = imageSize,
                 BatchSize = batchSize
             };
