@@ -2,7 +2,6 @@
 using Onnx;
 using System.Text;
 
-
 class Program
 {
     public class Metadata
@@ -22,15 +21,39 @@ class Program
     }
     static void Main(string[] args)
     {
-        if (args.Length == 0)
+        string? rootDirectory = null;
+        string? metadataPath = null;
+        bool ignore = false;
+
+        for (int i = 0; i < args.Length; i++)
         {
-            Console.WriteLine(@"Usage: onnx-md-parser <root_directory> [metadata_path]");
+            switch (args[i])
+            {
+                case "--dir" when i + 1 < args.Length:
+                    rootDirectory = args[i + 1].Trim('"');
+                    i++;
+                    break;
+                case "--md-path" when i + 1 < args.Length:
+                    metadataPath = args[i + 1];
+                    i++;
+                    break;
+                case "--ignore" when i + 1 < args.Length:
+                    ignore = args[i + 1].ToLower() == "true";
+                    i++;
+                    break;
+            }
+        }
+
+        if (string.IsNullOrEmpty(rootDirectory))
+        {
+            Console.WriteLine(@"Usage: onnx-md-parser --dir <root_directory> [--md-path <metadata_path>] [--ignore true/false]");
             return;
         }
 
-        var rootDirectory = args[0].Trim('"');
-
-        var metadataPath = args.Length > 1 ? args[1] : Path.Combine(rootDirectory, "metadata.json");
+        if (string.IsNullOrEmpty(metadataPath))
+        {
+            metadataPath = Path.Combine(rootDirectory, "metadata.json");
+        }
 
         var onnxFiles = Directory.GetFiles(rootDirectory, "*.onnx", SearchOption.AllDirectories);
         if (onnxFiles.Length == 0)
@@ -41,7 +64,7 @@ class Program
 
         Console.WriteLine($"[INFO] Found {onnxFiles.Length} ONNX files in {rootDirectory}.");
 
-        var existingMetadata = LoadExisting(metadataPath);
+        var existingMetadata = ignore ? new List<Metadata>() : LoadExisting(metadataPath);
         var hashes = new HashSet<string>(existingMetadata.Select(m => m.Hash));
 
         foreach (var file in onnxFiles)
@@ -51,13 +74,14 @@ class Program
             if (hashes.Contains(hash))
             {
                 Console.WriteLine($"[-] Skipping {file} - Hash: {hash}");
-                continue;
             }
-
-            var info = ExtractMetadata(file, hash);
-            existingMetadata.Add(info);
-            hashes.Add(hash);
-            Console.WriteLine($"[+] Processed {file} - Hash: {hash}");
+            else
+            {
+                var info = ExtractMetadata(file, hash);
+                existingMetadata.Add(info);
+                hashes.Add(hash);
+                Console.WriteLine($"[+] Processed {file} - Hash: {hash}");
+            }
         }
 
         Console.WriteLine($"[INFO] Proccessed {existingMetadata.Count}/{onnxFiles.Length} models");
