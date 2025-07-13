@@ -95,6 +95,7 @@
     };
 
     let files = [];
+    let metadata = null;
     let currentType = "models";
     let contextMenuTarget = null;
 
@@ -156,6 +157,19 @@
         }
     }
 
+    async function  fetchMetadata() {
+        const metadataUrl = `https://raw.githubusercontent.com/whoswhip/aimmy-models/main/${currentType}/metadata.json`;
+        try {
+            const response = await fetch(metadataUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error status: ${response.status}`);
+            }
+            metadata = await response.json();
+        } catch (error) {
+            console.error('Failed to fetch metadata:', error);
+        }
+    }
+
     async function fetchFromEndpoints(urls) {
         let hasSuccess = false;
         const fetchPromises = urls.map(url =>
@@ -180,9 +194,14 @@
 
         const data = await response.json();
         const existingHashes = new Set(files.map(f => f.sha));
+        const allowedExtensions = ['.onnx', '.pt', '.cfg'];
 
         data.forEach(model => {
-            if (!existingHashes.has(model.sha)) {
+            const hasAllowedExtension = allowedExtensions.some(ext => 
+                model.name.toLowerCase().endsWith(ext)
+            );
+            
+            if (!existingHashes.has(model.sha) && hasAllowedExtension) {
                 files.push(model);
                 addFileToDOM(model);
                 existingHashes.add(model.sha);
