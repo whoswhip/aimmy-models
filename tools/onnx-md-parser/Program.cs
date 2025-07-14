@@ -14,7 +14,6 @@ class Program
         public required string Created { get; set; }
         public required string Version { get; set; }
         public required string ModelType { get; set; }
-        public required string Classes { get; set; }
         public required string Labels { get; set; }
         public required int[] ImageSize { get; set; }
         public required int BatchSize { get; set; }
@@ -120,7 +119,6 @@ class Program
                 Version = metadata.ContainsKey("version") ? metadata["version"] : model.ProducerVersion ?? "N/A", /* metadata["version"] should be the yolo/onnx version, 
                                                                                                                    * its also what's shown as the version in netron.app */
                 ModelType = metadata.ContainsKey("task") ? metadata["task"] : "N/A",
-                Classes = metadata.ContainsKey("nc") ? metadata["nc"] : "N/A",
                 Labels = metadata.ContainsKey("names") ? metadata["names"] : "N/A",
                 ImageSize = imageSize,
                 BatchSize = batchSize
