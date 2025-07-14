@@ -113,7 +113,7 @@
         if (hash) {
             document.getElementById("search").value = hash;
         }
-        
+        fetchMetadata();
         getFiles().then(() => {
             if (hash) {
                 search();
@@ -158,7 +158,7 @@
     }
 
     async function  fetchMetadata() {
-        const metadataUrl = `https://raw.githubusercontent.com/whoswhip/aimmy-models/main/${currentType}/metadata.json`;
+        const metadataUrl = `https://raw.githubusercontent.com/whoswhip/aimmy-models/main/models/metadata.json`;
         try {
             const response = await fetch(metadataUrl);
             if (!response.ok) {
@@ -249,13 +249,80 @@
             search = search.replace("sort:-size", "").trim();
         }
 
+        if (search.includes("imagesize:")) {
+            const sizeMatch = search.match(/imagesize:(>=|<=|>|<|)(\d+)/);
+            if (sizeMatch) {
+                const operator = sizeMatch[1] || '=';
+                const targetSize = parseInt(sizeMatch[2]);
+                search = search.replace(/imagesize:(>=|<=|>|<|)\d+/, "").trim();
+                
+                if (metadata && !isNaN(targetSize)) {
+                    filteredFiles = filteredFiles.filter(file => {
+                        const metaEntry = metadata.find(meta => meta.Hash === file.sha);
+                        if (metaEntry && metaEntry.ImageSize && Array.isArray(metaEntry.ImageSize)) {
+                            const imageSize = metaEntry.ImageSize[0];
+                            
+                            switch (operator) {
+                                case '>': return imageSize > targetSize;
+                                case '>=': return imageSize >= targetSize;
+                                case '<': return imageSize < targetSize;
+                                case '<=': return imageSize <= targetSize;
+                                default: return metaEntry.ImageSize.includes(targetSize);
+                            }
+                        }
+                        return false;
+                    });
+                }
+            }
+        }
+
+        if (search.includes("labels:")) {
+            const labelsMatch = search.match(/labels:(>=|<=|>|<|)(\d+)/);
+            if (labelsMatch) {
+                const operator = labelsMatch[1] || '=';
+                const targetCount = parseInt(labelsMatch[2]);
+                search = search.replace(/labels:(>=|<=|>|<|)\d+/, "").trim();
+                
+                if (metadata && !isNaN(targetCount)) {
+                    let matchCount = 0;
+                    filteredFiles = filteredFiles.filter(file => {
+                        const metaEntry = metadata.find(meta => meta.Hash === file.sha);
+                        if (metaEntry && metaEntry.Labels) {
+                            let labelCount = 0;
+                            try {
+                                let fixedLabels = metaEntry.Labels
+                                    .replace(/'/g, '"')
+                                    .replace(/(\d+):/g, '"$1":');
+                                const labelsObj = JSON.parse(fixedLabels);
+                                labelCount = Object.keys(labelsObj).length;
+                            } catch (e) {
+                                labelCount = 0;
+                            }
+                            
+                            switch (operator) {
+                                case '>': return labelCount > targetCount;
+                                case '>=': return labelCount >= targetCount;
+                                case '<': return labelCount < targetCount;
+                                case '<=': return labelCount <= targetCount;
+                                default: return labelCount === targetCount;
+                            }
+                        }
+                        return false;
+                    });
+                }
+            }
+        }
+
         if (search.includes("githash:")) {
             const hashIndex = search.indexOf("githash:");
             const hash = search.slice(hashIndex + 8).split(' ')[0];
             filteredFiles = filteredFiles.filter(file => file.sha.includes(hash));
+            search = search.replace(/githash:[a-z0-9]+/, "").trim();
         } else if (search) {
             filteredFiles = filteredFiles.filter(file => file.name.toLowerCase().includes(search));
         }
+
+
 
         document.getElementById("files").innerHTML = "";
         filteredFiles.forEach(file => {
