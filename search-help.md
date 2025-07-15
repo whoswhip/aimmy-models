@@ -13,3 +13,8 @@ The search accepts `:`, `>`, `>=`, `<` and `<=`
 ## labels:
 Including `labels:{amount}` will only show models that have that amount of labels.
 The search accepts `:`, `>`, `>=`, `<` and `<=`
+## repo:
+Including `repo:{name}` will filter files by repository. You can use:
+- `repo:aimmy-models` - Show files from any repository named "aimmy-models"
+- `repo:whoswhip/aimmy-models` - Show files specifically from "whoswhip/aimmy-models"
+- `repo:babyhamsta` - Show files from any repository containing "babyhamsta"
