@@ -10,6 +10,7 @@ class Program
         public required DateTime Timestamp { get; set; }
         public required long UNIXTimestamp { get; set; }
         public required string Path { get; set; }
+        public required string OriginalFilename { get; set; }
         public required string Hash { get; set; }
     }
 
@@ -23,6 +24,7 @@ class Program
         string? guildId = null;
         string? channelId = null;
         bool checkDuplicates = false;
+        bool skipDownload = false;
         bool cliOnly = false;
         int offset = 0;
 
@@ -38,7 +40,7 @@ class Program
 
             if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(guildId) || string.IsNullOrWhiteSpace(channelId))
             {
-                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates]");
+                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download]");
                 return;
             }
         }
@@ -68,13 +70,16 @@ class Program
                         case "check-duplicates":
                             checkDuplicates = true;
                             break;
+                        case "skip-download":
+                            skipDownload = true;
+                            break;
                     }
                     cliOnly = true;
                 }
             }
             if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(guildId) || string.IsNullOrWhiteSpace(channelId))
             {
-                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates]");
+                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download]");
                 return;
             }
         }
@@ -85,67 +90,61 @@ class Program
                 Directory.CreateDirectory(extension.TrimStart('.'));
         }
 
-        while (true)
+        if (!skipDownload)
         {
-            try
+            while (true)
             {
-                var response = await GetMessagesAsync(token, guildId, channelId, offset);
-                if (response == null)
-                    continue;
-
-                long totalResults = response["total_results"]?.Value<long>() ?? 0;
-                if (totalResults == 0 || offset >= totalResults)
+                try
                 {
-                    Console.WriteLine("[!] No messages found.");
+                    var response = await GetMessagesAsync(token, guildId, channelId, offset);
+                    if (response == null)
+                        continue;
+
+                    long totalResults = response["total_results"]?.Value<long>() ?? 0;
+                    if (totalResults == 0 || offset >= totalResults)
+                    {
+                        Console.WriteLine("[!] No messages found.");
+                        break;
+                    }
+
+                    JArray? messages = response["messages"] != null
+                        ? JArray.Parse(response["messages"]!.ToString())
+                        : null;
+
+                    if (messages == null || messages.Count == 0)
+                    {
+                        Console.WriteLine("[!] No messages found in the response.");
+                        break;
+                    }
+
+                    await ProccessMessagesAsync(messages);
+
+                    offset += messages.Count;
+                    await Task.Delay(750);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[!] Error: {ex.Message}");
                     break;
                 }
-
-                JArray? messages = response["messages"] != null
-                    ? JArray.Parse(response["messages"]!.ToString())
-                    : null;
-
-                if (messages == null || messages.Count == 0)
-                {
-                    Console.WriteLine("[!] No messages found in the response.");
-                    break;
-                }
-
-                await ProccessMessagesAsync(messages);
-
-                offset += messages.Count;
-                await Task.Delay(750);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[!] Error: {ex.Message}");
-                break;
             }
         }
+        else
+        {
+            Console.WriteLine("[*] Skipping download phase...");
+            LoadExistingFiles();
+        }
 
-        if (!cliOnly)
+        if (!cliOnly && !skipDownload)
         {
             Console.WriteLine("[*] Finished processing messages.");
             Console.Write("[?] Do you want to check for duplicates? (y/N): ");
             checkDuplicates = Console.ReadLine()?.Trim().ToLowerInvariant() == "y";
         }
 
-        if (checkDuplicates)
+        if (checkDuplicates || skipDownload)
         {
-            var duplicates = messages.GroupBy(m => m.Hash)
-                .Where(g => g.Count() > 1)
-                .SelectMany(g => g.OrderBy(m => m.Timestamp).Skip(1));
-            if (!Directory.Exists("duplicates"))
-                Directory.CreateDirectory("duplicates");
-            foreach (var duplicate in duplicates)
-            {
-                Console.WriteLine($"[!] Duplicate found: {duplicate.Path} (Hash: {duplicate.Hash})");
-                Console.WriteLine($"    └Original: {messages.First(m => m.Hash == duplicate.Hash).Path} (Hash: {duplicate.Hash})");
-
-                var fullPath = Path.GetFullPath(duplicate.Path);
-
-                File.Move(fullPath, Path.Combine("duplicates", Path.GetFileName(fullPath)), true);
-            }
-            Console.WriteLine($"[*] Duplicate check completed, moved {duplicates.ToList().Count} duplicate(s).");
+            CheckDuplicates();
         }
 
     }
@@ -230,17 +229,69 @@ class Program
                 }
 
                 byte[] file = await response.Content.ReadAsByteArrayAsync();
-                string filename = attatchment["filename"]?.Value<string>() ?? $"{GenerateString(8)}.{extension}";
+                string filename = !string.IsNullOrWhiteSpace(attatchment["title"]?.Value<string>()) ? $"{attatchment["title"]?.Value<string>()}.{extension}" : attatchment["filename"]?.Value<string>() ?? $"{GenerateString(8)}.{extension}";
                 string filePath = Path.Combine(extension, filename);
+                string hash = SHA256(file);
 
                 if (File.Exists(filePath))
                 {
-                    filePath = Path.Combine(extension, $"{filename.Split(".")[0]}_{GenerateString(4)}.{extension}");
+                    DateTime existingFileTime = File.GetLastWriteTimeUtc(filePath);
+                    string existingFileHash = SHA256(await File.ReadAllBytesAsync(filePath));
+
+                    if (existingFileTime <= timestamp && existingFileHash == hash)
+                    {
+                        string newerDir = Path.Combine(extension, "newer");
+                        if (!Directory.Exists(newerDir))
+                            Directory.CreateDirectory(newerDir);
+
+                        string newFilePath = Path.Combine(newerDir, filename);
+                        
+                        int counter = 1;
+                        string originalNewFilePath = newFilePath;
+                        while (File.Exists(newFilePath))
+                        {
+                            string nameWithoutExt = Path.GetFileNameWithoutExtension(originalNewFilePath);
+                            string ext = Path.GetExtension(originalNewFilePath);
+                            newFilePath = Path.Combine(newerDir, $"{nameWithoutExt}_{counter}{ext}");
+                            counter++;
+                        }
+
+                        Console.WriteLine($"[+] Keeping older file: {filePath} (from {existingFileTime})");
+                        Console.WriteLine($"[+] Saving newer file to: {newFilePath} (from {timestamp})");
+                        
+                        await File.WriteAllBytesAsync(newFilePath, file);
+                        File.SetCreationTimeUtc(newFilePath, timestamp);
+                        File.SetLastWriteTimeUtc(newFilePath, timestamp);
+                        File.SetLastAccessTimeUtc(newFilePath, timestamp);
+                        return;
+                    }
+                    else
+                    {
+                        string newerDir = Path.Combine(extension, "newer");
+                        if (!Directory.Exists(newerDir))
+                            Directory.CreateDirectory(newerDir);
+
+                        string newerFilePath = Path.Combine(newerDir, filename);
+                        
+                        int counter = 1;
+                        string originalNewerFilePath = newerFilePath;
+                        while (File.Exists(newerFilePath))
+                        {
+                            string nameWithoutExt = Path.GetFileNameWithoutExtension(originalNewerFilePath);
+                            string ext = Path.GetExtension(originalNewerFilePath);
+                            newerFilePath = Path.Combine(newerDir, $"{nameWithoutExt}_{counter}{ext}");
+                            counter++;
+                        }
+
+                        File.Move(filePath, newerFilePath);
+                        Console.WriteLine($"[+] Moved newer file to: {newerFilePath} (from {existingFileTime})");
+                        Console.WriteLine($"[+] Keeping older file: {filePath} (from {timestamp})");
+                    }
                 }
 
 
 
-                string hash = SHA256(file);
+
                 var attatchmentInfo = new AttatchmentInfo
                 {
                     AttatchmentURL = url,
@@ -248,6 +299,9 @@ class Program
                     Username = username,
                     Timestamp = timestamp,
                     UNIXTimestamp = ((DateTimeOffset)timestamp).ToUnixTimeSeconds(),
+                    OriginalFilename = !string.IsNullOrWhiteSpace(attatchment["title"]?.Value<string>())
+                                        ? $"{attatchment["title"]?.Value<string>()}.{extension}"
+                                        : attatchment["filename"]?.Value<string>() ?? $"{GenerateString(8)}.{extension}",
                     Path = filePath,
                     Hash = hash
                 };
@@ -266,6 +320,171 @@ class Program
             Console.WriteLine($"[!] Error downloading file: {ex.Message}");
             return;
         }
+    }    static void CheckDuplicates()
+    {
+        Console.WriteLine("[*] Checking for duplicate files...");
+
+        string duplicatesDir = "duplicates";
+        if (!Directory.Exists(duplicatesDir))
+            Directory.CreateDirectory(duplicatesDir);
+
+        var duplicateGroups = messages
+            .GroupBy(m => m.Hash)
+            .Where(g => g.Count() > 1)
+            .ToList();
+
+        if (duplicateGroups.Count == 0)
+        {
+            Console.WriteLine("[*] No duplicates found.");
+            return;
+        }
+
+        Console.WriteLine($"[*] Found {duplicateGroups.Count} groups of duplicate files.");
+
+        foreach (var group in duplicateGroups)
+        {
+            var sortedFiles = group.OrderBy(f => f.Timestamp).ToList();
+            
+            AttatchmentInfo? oldestFile = null;
+            var remainingFiles = new List<AttatchmentInfo>();
+            
+            foreach (var file in sortedFiles)
+            {
+                string actualPath = FindActualFilePath(file.Path);
+                if (oldestFile == null && !string.IsNullOrEmpty(actualPath))
+                {
+                    oldestFile = new AttatchmentInfo
+                    {
+                        AttatchmentURL = file.AttatchmentURL,
+                        AuthorID = file.AuthorID,
+                        Username = file.Username,
+                        Timestamp = file.Timestamp,
+                        UNIXTimestamp = file.UNIXTimestamp,
+                        Path = actualPath,
+                        OriginalFilename = file.OriginalFilename,
+                        Hash = file.Hash
+                    };
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(actualPath))
+                    {
+                        file.Path = actualPath;
+                    }
+                    remainingFiles.Add(file);
+                }
+            }
+
+            Console.WriteLine($"[*] Processing duplicates for hash: {group.Key.Substring(0, 8)}...");
+            
+            if (oldestFile == null)
+            {
+                Console.WriteLine($"    [!] No files found for this hash group - all may have been moved already");
+                continue;
+            }
+
+            Console.WriteLine($"    Keeping oldest existing: {oldestFile.Path} (from {oldestFile.Timestamp})");
+
+            var duplicatesByPath = remainingFiles
+                .Where(f => FindActualFilePath(f.Path) != oldestFile.Path)
+                .GroupBy(d => FindActualFilePath(d.Path))
+                .Where(g => !string.IsNullOrEmpty(g.Key))
+                .ToList();
+
+            foreach (var pathGroup in duplicatesByPath)
+            {
+                var duplicate = pathGroup.First();
+                string actualPath = pathGroup.Key;
+                
+                try
+                {
+                    string filename = Path.GetFileName(actualPath);
+                    string extension = Path.GetExtension(filename).TrimStart('.');
+
+                    string duplicateExtensionDir = Path.Combine(duplicatesDir, extension);
+                    if (!Directory.Exists(duplicateExtensionDir))
+                        Directory.CreateDirectory(duplicateExtensionDir);
+
+                    string duplicatePath = Path.Combine(duplicateExtensionDir, filename);
+
+                    int counter = 1;
+                    string originalDuplicatePath = duplicatePath;
+                    while (File.Exists(duplicatePath))
+                    {
+                        string nameWithoutExt = Path.GetFileNameWithoutExtension(originalDuplicatePath);
+                        string ext = Path.GetExtension(originalDuplicatePath);
+                        duplicatePath = Path.Combine(duplicateExtensionDir, $"{nameWithoutExt}_{counter}{ext}");
+                        counter++;
+                    }
+
+                    File.Move(actualPath, duplicatePath);
+                    Console.WriteLine($"    Moved duplicate: {actualPath} -> {duplicatePath} (from {duplicate.Timestamp})");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"    [!] Error moving duplicate {actualPath}: {ex.Message}");
+                }
+            }
+        }
+
+        Console.WriteLine("[*] Duplicate checking completed.");
+    }
+
+    static void LoadExistingFiles()
+    {
+        Console.WriteLine("[*] Loading existing files for duplicate checking...");
+        
+        foreach (var extension in acceptedExtensions)
+        {
+            string extensionDir = extension.TrimStart('.');
+            if (Directory.Exists(extensionDir))
+            {
+                LoadFilesFromDirectory(extensionDir, extension);
+                
+                string newerDir = Path.Combine(extensionDir, "newer");
+                if (Directory.Exists(newerDir))
+                {
+                    LoadFilesFromDirectory(newerDir, extension);
+                }
+            }
+        }
+        
+        Console.WriteLine($"[*] Loaded {messages.Count} files for processing.");
+    }
+
+    static void LoadFilesFromDirectory(string directory, string extension)
+    {
+        string[] files = Directory.GetFiles(directory, $"*.{extension}");
+        
+        foreach (string filePath in files)
+        {
+            try
+            {
+                byte[] fileBytes = File.ReadAllBytes(filePath);
+                string hash = SHA256(fileBytes);
+                DateTime timestamp = File.GetLastWriteTimeUtc(filePath);
+                string filename = Path.GetFileName(filePath);
+                
+                var attachmentInfo = new AttatchmentInfo
+                {
+                    AttatchmentURL = "",
+                    AuthorID = null,
+                    Username = "Unknown",
+                    Timestamp = timestamp,
+                    UNIXTimestamp = ((DateTimeOffset)timestamp).ToUnixTimeSeconds(),
+                    Path = filePath,
+                    OriginalFilename = filename,
+                    Hash = hash
+                };
+                
+                messages.Add(attachmentInfo);
+                Console.WriteLine($"[+] Loaded: {filePath} (modified {timestamp})");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[!] Error loading file {filePath}: {ex.Message}");
+            }
+        }
     }
 
     static string GenerateString(int length)
@@ -281,5 +500,46 @@ class Program
         {
             return BitConverter.ToString(sha256.ComputeHash(file)).Replace("-", "").ToLowerInvariant();
         }
+    }
+
+    static string FindActualFilePath(string originalPath)
+    {
+        if (File.Exists(originalPath))
+        {
+            return originalPath;
+        }
+
+        string directory = Path.GetDirectoryName(originalPath) ?? "";
+        string filename = Path.GetFileName(originalPath);
+        
+        string[] subdirectories = { "newer" };
+        
+        foreach (string subdir in subdirectories)
+        {
+            string subdirPath = Path.Combine(directory, subdir);
+            if (Directory.Exists(subdirPath))
+            {
+                string potentialPath = Path.Combine(subdirPath, filename);
+                if (File.Exists(potentialPath))
+                {
+                    return potentialPath;
+                }
+                
+                string nameWithoutExt = Path.GetFileNameWithoutExtension(filename);
+                string extension = Path.GetExtension(filename);
+                
+                for (int counter = 1; counter <= 10; counter++)
+                {
+                    string variantFilename = $"{nameWithoutExt}_{counter}{extension}";
+                    string variantPath = Path.Combine(subdirPath, variantFilename);
+                    if (File.Exists(variantPath))
+                    {
+                        return variantPath;
+                    }
+                }
+            }
+        }
+        
+        return "";
     }
 }
