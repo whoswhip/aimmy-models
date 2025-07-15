@@ -40,7 +40,7 @@ jobs:
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         ls
         git add models/metadata.json
-        git commit -m "Update metadata.json [from ONNX-MD-Parser workflow]"
+        git commit -m "chore: update metadata.json from ONNX-MD-Parser workflow"
         git push origin HEAD
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
