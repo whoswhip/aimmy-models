@@ -201,7 +201,7 @@
                 model.name.toLowerCase().endsWith(ext)
             );
 
-            if (!existingHashes.has(model.sha) && hasAllowedExtension) {
+            if (hasAllowedExtension) {
                 files.push(model);
                 addFileToDOM(model);
                 existingHashes.add(model.sha);
@@ -313,16 +313,41 @@
             }
         }
 
+        if (search.includes("repo:")){
+            const repoMatch = search.match(/repo:([a-zA-Z0-9._-]+(?:\/[a-zA-Z0-9._-]+)?)/);
+            if (repoMatch) {
+                const repoIdentifier = repoMatch[1].toLowerCase();
+                
+                filteredFiles = filteredFiles.filter(file => {
+                    const url = file.download_url.toLowerCase();
+                    
+                    if (repoIdentifier.includes('/')) {
+                        return url.includes(`/${repoIdentifier}/`);
+                    }
+                    
+                    const urlRepoMatch = url.match(/\/repos\/[^\/]+\/([^\/]+)\//);
+                    if (urlRepoMatch) {
+                        const urlRepoName = urlRepoMatch[1];
+                        return urlRepoName === repoIdentifier || urlRepoName.includes(repoIdentifier);
+                    }
+                    
+                    return url.includes(repoIdentifier);
+                });
+                
+                search = search.replace(/repo:[a-zA-Z0-9._\/-]+/, "").trim();
+            }
+        }
+
         if (search.includes("githash:")) {
             const hashIndex = search.indexOf("githash:");
             const hash = search.slice(hashIndex + 8).split(' ')[0];
             filteredFiles = filteredFiles.filter(file => file.sha.includes(hash));
             search = search.replace(/githash:[a-z0-9]+/, "").trim();
-        } else if (search) {
+        }
+        
+        if (search.trim()) {
             filteredFiles = filteredFiles.filter(file => file.name.toLowerCase().includes(search));
         }
-
-
 
         document.getElementById("files").innerHTML = "";
         filteredFiles.forEach(file => {
