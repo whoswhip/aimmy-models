@@ -19,6 +19,15 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Clone Aimmy models folder
+      run: |
+        git clone --filter=blob:none --sparse https://github.com/babyhamsta/aimmy.git temp-aimmy
+        cd temp-aimmy
+        git sparse-checkout set models
+        cp -r models/* ../models/ || true
+        cd ..
+        rm -rf temp-aimmy
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
