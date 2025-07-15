@@ -108,7 +108,7 @@
         currentType = urlParams.get("type") || "models";
 
         updatePageForType(currentType);
-        
+
         const hash = window.location.hash.substring(1).toLowerCase();
         if (hash) {
             document.getElementById("search").value = hash;
@@ -157,7 +157,7 @@
         }
     }
 
-    async function  fetchMetadata() {
+    async function fetchMetadata() {
         const metadataUrl = `https://raw.githubusercontent.com/whoswhip/aimmy-models/main/models/metadata.json`;
         try {
             const response = await fetch(metadataUrl);
@@ -197,10 +197,10 @@
         const allowedExtensions = ['.onnx', '.pt', '.cfg'];
 
         data.forEach(model => {
-            const hasAllowedExtension = allowedExtensions.some(ext => 
+            const hasAllowedExtension = allowedExtensions.some(ext =>
                 model.name.toLowerCase().endsWith(ext)
             );
-            
+
             if (!existingHashes.has(model.sha) && hasAllowedExtension) {
                 files.push(model);
                 addFileToDOM(model);
@@ -255,13 +255,13 @@
                 const operator = sizeMatch[1] || '=';
                 const targetSize = parseInt(sizeMatch[2]);
                 search = search.replace(/imagesize:(>=|<=|>|<|)\d+/, "").trim();
-                
+
                 if (metadata && !isNaN(targetSize)) {
                     filteredFiles = filteredFiles.filter(file => {
                         const metaEntry = metadata.find(meta => meta.Hash === file.sha);
                         if (metaEntry && metaEntry.ImageSize && Array.isArray(metaEntry.ImageSize)) {
                             const imageSize = metaEntry.ImageSize[0];
-                            
+
                             switch (operator) {
                                 case '>': return imageSize > targetSize;
                                 case '>=': return imageSize >= targetSize;
@@ -282,7 +282,7 @@
                 const operator = labelsMatch[1] || '=';
                 const targetCount = parseInt(labelsMatch[2]);
                 search = search.replace(/labels:(>=|<=|>|<|)\d+/, "").trim();
-                
+
                 if (metadata && !isNaN(targetCount)) {
                     let matchCount = 0;
                     filteredFiles = filteredFiles.filter(file => {
@@ -298,7 +298,7 @@
                             } catch (e) {
                                 labelCount = 0;
                             }
-                            
+
                             switch (operator) {
                                 case '>': return labelCount > targetCount;
                                 case '>=': return labelCount >= targetCount;
@@ -428,7 +428,7 @@
                         <strong>Match found:</strong><br>
                         Name: ${matchingFile.name}<br>
                         Size: ${formatBytes(matchingFile.size)}<br>
-                        Path: <a href="${matchingFile.path}" target="_blank">${matchingFile.path}</a>
+                        Path: <a href="${matchingFile.download_url}" target="_blank">${matchingFile.path}</a>
                     </p>
                 `;
             } else {
