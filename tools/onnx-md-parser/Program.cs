@@ -17,6 +17,7 @@ class Program
         public required string Labels { get; set; }
         public required int[] ImageSize { get; set; }
         public required int BatchSize { get; set; }
+        public string? Args { get; set; }
     }
     static void Main(string[] args)
     {
@@ -121,7 +122,8 @@ class Program
                 ModelType = metadata.ContainsKey("task") ? metadata["task"] : "N/A",
                 Labels = metadata.ContainsKey("names") ? metadata["names"] : "N/A",
                 ImageSize = imageSize,
-                BatchSize = batchSize
+                BatchSize = batchSize,
+                Args = metadata.ContainsKey("args") ? metadata["args"] : null
             };
         } 
     }
