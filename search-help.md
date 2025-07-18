@@ -18,3 +18,7 @@ Including `repo:{name}` will filter files by repository. You can use:
 - `repo:aimmy-models` - Show files from any repository named "aimmy-models"
 - `repo:whoswhip/aimmy-models` - Show files specifically from "whoswhip/aimmy-models"
 - `repo:babyhamsta` - Show files from any repository containing "babyhamsta"
+## dynamic:(true/false)
+Including `dynamic:(true/false)` will only show models that have been exported as dynamic.
+## simplified:(true/false)
+Including `simplified:(true/false)` will only show models that have been exported with the simplify arguement.
