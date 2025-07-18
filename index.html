@@ -235,33 +235,32 @@
         let search = document.getElementById("search").value.trim().toLowerCase();
         let filteredFiles = files;
 
-        if (search.includes("!unique")) {
-            filteredFiles = Array.from(new Map(filteredFiles.map(file => [file.sha, file])).values());
-            search = search.replace("!unique", "").trim();
-        }
-
-        if (search.includes("sort:size")) {
-            filteredFiles = filteredFiles.sort((a, b) => a.size - b.size);
-            search = search.replace("sort:size", "").trim();
-        }
-        else if (search.includes("sort:-size")) {
-            filteredFiles = filteredFiles.sort((a, b) => b.size - a.size);
-            search = search.replace("sort:-size", "").trim();
-        }
-
-        if (search.includes("imagesize:")) {
-            const sizeMatch = search.match(/imagesize:(>=|<=|>|<|)(\d+)/);
-            if (sizeMatch) {
-                const operator = sizeMatch[1] || '=';
-                const targetSize = parseInt(sizeMatch[2]);
-                search = search.replace(/imagesize:(>=|<=|>|<|)\d+/, "").trim();
-
-                if (metadata && !isNaN(targetSize)) {
-                    filteredFiles = filteredFiles.filter(file => {
+        const filters = [
+            {
+                test: /!unique/,
+                apply: (files) => Array.from(new Map(files.map(file => [file.sha, file])).values()),
+                clean: (s) => s.replace("!unique", "").trim()
+            },
+            {
+                test: /sort:size/,
+                apply: (files) => files.slice().sort((a, b) => a.size - b.size),
+                clean: (s) => s.replace("sort:size", "").trim()
+            },
+            {
+                test: /sort:-size/,
+                apply: (files) => files.slice().sort((a, b) => b.size - a.size),
+                clean: (s) => s.replace("sort:-size", "").trim()
+            },
+            {
+                test: /imagesize:(>=|<=|>|<|)?(\d+)/,
+                apply: (files, match) => {
+                    if (!metadata) return files;
+                    const operator = match[1] || '=';
+                    const targetSize = parseInt(match[2]);
+                    return files.filter(file => {
                         const metaEntry = metadata.find(meta => meta.Hash === file.sha);
                         if (metaEntry && metaEntry.ImageSize && Array.isArray(metaEntry.ImageSize)) {
                             const imageSize = metaEntry.ImageSize[0];
-
                             switch (operator) {
                                 case '>': return imageSize > targetSize;
                                 case '>=': return imageSize >= targetSize;
@@ -272,20 +271,16 @@
                         }
                         return false;
                     });
-                }
-            }
-        }
-
-        if (search.includes("labels:")) {
-            const labelsMatch = search.match(/labels:(>=|<=|>|<|)(\d+)/);
-            if (labelsMatch) {
-                const operator = labelsMatch[1] || '=';
-                const targetCount = parseInt(labelsMatch[2]);
-                search = search.replace(/labels:(>=|<=|>|<|)\d+/, "").trim();
-
-                if (metadata && !isNaN(targetCount)) {
-                    let matchCount = 0;
-                    filteredFiles = filteredFiles.filter(file => {
+                },
+                clean: (s) => s.replace(/imagesize:(>=|<=|>|<|)?\d+/, "").trim()
+            },
+            {
+                test: /labels:(>=|<=|>|<|)?(\d+)/,
+                apply: (files, match) => {
+                    if (!metadata) return files;
+                    const operator = match[1] || '=';
+                    const targetCount = parseInt(match[2]);
+                    return files.filter(file => {
                         const metaEntry = metadata.find(meta => meta.Hash === file.sha);
                         if (metaEntry && metaEntry.Labels) {
                             let labelCount = 0;
@@ -298,7 +293,6 @@
                             } catch (e) {
                                 labelCount = 0;
                             }
-
                             switch (operator) {
                                 case '>': return labelCount > targetCount;
                                 case '>=': return labelCount >= targetCount;
@@ -309,74 +303,72 @@
                         }
                         return false;
                     });
-                }
-            }
-        }
-
-        if (search.includes("repo:")){
-            const repoMatch = search.match(/repo:([a-zA-Z0-9._-]+(?:\/[a-zA-Z0-9._-]+)?)/);
-            if (repoMatch) {
-                const repoIdentifier = repoMatch[1].toLowerCase();
-                
-                filteredFiles = filteredFiles.filter(file => {
-                    const url = file.download_url.toLowerCase();
-                    
-                    if (repoIdentifier.includes('/')) {
-                        return url.includes(`/${repoIdentifier}/`);
-                    }
-                    
-                    const urlRepoMatch = url.match(/\/repos\/[^\/]+\/([^\/]+)\//);
-                    if (urlRepoMatch) {
-                        const urlRepoName = urlRepoMatch[1];
-                        return urlRepoName === repoIdentifier || urlRepoName.includes(repoIdentifier);
-                    }
-                    
-                    return url.includes(repoIdentifier);
-                });
-                
-                search = search.replace(/repo:[a-zA-Z0-9._\/-]+/, "").trim();
-            }
-        }
-
-        if (search.includes("dynamic:")) {
-            const dynamicMatch = search.match(/dynamic:(true|false)/);
-            if (dynamicMatch) {
-                const isDynamic = dynamicMatch[1] === 'true';
-                console.log(`Filtering for dynamic: ${isDynamic}`);
-                filteredFiles = filteredFiles.filter(file => {
-                    const metaEntry = metadata.find(meta => meta.Hash === file.sha);
-                    if (!metaEntry) return false;
-                    let argsDynamic = null;
-                    
-                    if (metaEntry.Args) {
-                        try {
-                            let fixedArgs = metaEntry.Args
-                                .replace(/'/g, '"')
-                                .replace(/\bnone\b/gi, 'null')
-                                .toLowerCase();
-                            const argsObj = JSON.parse(fixedArgs);
-                            argsDynamic = argsObj.dynamic;
-                        } catch (e) {
-                            console.error(`Error parsing args for ${file.name}:`, e);
-                            argsDynamic = null;
+                },
+                clean: (s) => s.replace(/labels:(>=|<=|>|<|)?\d+/, "").trim()
+            },
+            {
+                test: /repo:([a-zA-Z0-9._-]+(?:\/[a-zA-Z0-9._-]+)?)/,
+                apply: (files, match) => {
+                    const repoIdentifier = match[1].toLowerCase();
+                    return files.filter(file => {
+                        const url = file.download_url.toLowerCase();
+                        if (repoIdentifier.includes('/')) {
+                            return url.includes(`/${repoIdentifier}/`);
                         }
-                    }
-                    if (argsDynamic !== null) {
-                        return argsDynamic === isDynamic;
-                    }
-                    return metaEntry.Dynamic === isDynamic;
-                });
-                search = search.replace(/dynamic:(true|false)/, "").trim();
+                        const urlRepoMatch = url.match(/\/repos\/[^\/]+\/([^\/]+)\//);
+                        if (urlRepoMatch) {
+                            const urlRepoName = urlRepoMatch[1];
+                            return urlRepoName === repoIdentifier || urlRepoName.includes(repoIdentifier);
+                        }
+                        return url.includes(repoIdentifier);
+                    });
+                },
+                clean: (s) => s.replace(/repo:[a-zA-Z0-9._\/-]+/, "").trim()
+            },
+            {
+                test: /dynamic:(true|false)/,
+                apply: (files, match) => {
+                    if (!metadata) return files;
+                    const isDynamic = match[1] === 'true';
+                    return files.filter(file => {
+                        const metaEntry = metadata.find(meta => meta.Hash === file.sha);
+                        if (!metaEntry) return false;
+                        let argsDynamic = null;
+                        if (metaEntry.Args) {
+                            try {
+                                let fixedArgs = metaEntry.Args
+                                    .replace(/'/g, '"')
+                                    .replace(/\bnone\b/gi, 'null')
+                                    .toLowerCase();
+                                const argsObj = JSON.parse(fixedArgs);
+                                argsDynamic = argsObj.dynamic;
+                            } catch (e) {
+                                argsDynamic = null;
+                            }
+                        }
+                        if (argsDynamic !== null) {
+                            return argsDynamic === isDynamic;
+                        }
+                        return metaEntry.Dynamic === isDynamic;
+                    });
+                },
+                clean: (s) => s.replace(/dynamic:(true|false)/, "").trim()
+            },
+            {
+                test: /githash:([a-z0-9]+)/,
+                apply: (files, match) => files.filter(file => file.sha.includes(match[1])),
+                clean: (s) => s.replace(/githash:[a-z0-9]+/, "").trim()
+            }
+        ];
+
+        for (const filter of filters) {
+            let match = search.match(filter.test);
+            if (match) {
+                filteredFiles = filter.apply(filteredFiles, match);
+                search = filter.clean(search);
             }
         }
 
-        if (search.includes("githash:")) {
-            const hashIndex = search.indexOf("githash:");
-            const hash = search.slice(hashIndex + 8).split(' ')[0];
-            filteredFiles = filteredFiles.filter(file => file.sha.includes(hash));
-            search = search.replace(/githash:[a-z0-9]+/, "").trim();
-        }
-        
         if (search.trim()) {
             filteredFiles = filteredFiles.filter(file => file.name.toLowerCase().includes(search));
         }
