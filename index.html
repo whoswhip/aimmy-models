@@ -338,6 +338,32 @@
             }
         }
 
+        if (search.includes("dynamic:")) {
+            const dynamicMatch = search.match(/dynamic:(true|false)/);
+            if (dynamicMatch) {
+                const isDynamic = dynamicMatch[1] === 'true';
+                filteredFiles = filteredFiles.filter(file => {
+                    const metaEntry = metadata.find(meta => meta.Hash === file.sha);
+                    if (!metaEntry) return false;
+                    let argsDynamic = null;
+                    if (metaEntry.Args) {
+                        try {
+                            let fixedArgs = metaEntry.Args.replace(/'/g, '"');
+                            const argsObj = JSON.parse(fixedArgs);
+                            argsDynamic = argsObj.dynamic;
+                        } catch (e) {
+                            argsDynamic = null;
+                        }
+                    }
+                    if (argsDynamic !== null) {
+                        return argsDynamic === isDynamic;
+                    }
+                    return metaEntry.Dynamic === isDynamic;
+                });
+                search = search.replace(/dynamic:(true|false)/, "").trim();
+            }
+        }
+
         if (search.includes("githash:")) {
             const hashIndex = search.indexOf("githash:");
             const hash = search.slice(hashIndex + 8).split(' ')[0];
