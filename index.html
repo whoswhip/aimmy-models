@@ -355,6 +355,35 @@
                 clean: (s) => s.replace(/dynamic:(true|false)/, "").trim()
             },
             {
+                test: /simplified:(true|false)/,
+                apply: (files, match) => {
+                    if (!metadata) return files;
+                    const isSimplified = match[1] === 'true';
+                    return files.filter(file => {
+                        const metaEntry = metadata.find(meta => meta.Hash === file.sha);
+                        if (!metaEntry) return false;
+                        let argsSimplified = null;
+                        if (metaEntry.Args) {
+                            try {
+                                let fixedArgs = metaEntry.Args
+                                    .replace(/'/g, '"')
+                                    .replace(/\bnone\b/gi, 'null')
+                                    .toLowerCase();
+                                const argsObj = JSON.parse(fixedArgs);
+                                argsSimplified = argsObj.simplify;
+                            } catch (e) {
+                                argsSimplified = null;
+                            }
+                        }
+                        if (argsSimplified !== null) {
+                            return argsSimplified === isSimplified;
+                        }
+                        return metaEntry.Simplified === isSimplified;
+                    });
+                },
+                clean: (s) => s.replace(/simplified:(true|false)/, "").trim()
+            },
+            {
                 test: /githash:([a-z0-9]+)/,
                 apply: (files, match) => files.filter(file => file.sha.includes(match[1])),
                 clean: (s) => s.replace(/githash:[a-z0-9]+/, "").trim()
