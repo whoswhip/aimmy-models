@@ -7,3 +7,6 @@ The first intial batch of models & configs (start - 12-28-24) was scraped via a 
 The new batch of configs (12-29-24 - 06-14-25) was scraped using the same simple C# app, they were then validated using a python script.
 # Why?
 Plain and simple reason why was just to make it some what easier to find and download models & configs for Aimmy or any other program that can use the models.
+
+# License
+This project is licensed under the [AGPL-3.0 License](LICENSE).
