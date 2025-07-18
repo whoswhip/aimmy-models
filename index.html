@@ -342,16 +342,22 @@
             const dynamicMatch = search.match(/dynamic:(true|false)/);
             if (dynamicMatch) {
                 const isDynamic = dynamicMatch[1] === 'true';
+                console.log(`Filtering for dynamic: ${isDynamic}`);
                 filteredFiles = filteredFiles.filter(file => {
                     const metaEntry = metadata.find(meta => meta.Hash === file.sha);
                     if (!metaEntry) return false;
                     let argsDynamic = null;
+                    
                     if (metaEntry.Args) {
                         try {
-                            let fixedArgs = metaEntry.Args.replace(/'/g, '"');
+                            let fixedArgs = metaEntry.Args
+                                .replace(/'/g, '"')
+                                .replace(/\bnone\b/gi, 'null')
+                                .toLowerCase();
                             const argsObj = JSON.parse(fixedArgs);
                             argsDynamic = argsObj.dynamic;
                         } catch (e) {
+                            console.error(`Error parsing args for ${file.name}:`, e);
                             argsDynamic = null;
                         }
                     }
