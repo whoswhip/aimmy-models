@@ -17,6 +17,11 @@ class Program
     static readonly HttpClient client = new HttpClient();
     static readonly string[] acceptedExtensions = { "onnx", "pt", "cfg" };
     static List<AttatchmentInfo> messages = new List<AttatchmentInfo>();
+    static Dictionary<string, string> knownOriginals = new Dictionary<string, string>
+    {
+        { "8C33ECC90221267FCD6FB7DF7295841F4BFB061F3E3208344AB7E80C998AD40B", "Themida Arsenal (4k).onnx" },
+        { "6E814BA61CE5A8CDBEBEB95F28B98DE562761A2F24A559A7A4EA417DDEB0A4E6", "Universal Hamsta v3.onnx"}
+    };
 
     static async Task Main(string[] args)
     {
@@ -289,9 +294,6 @@ class Program
                     }
                 }
 
-
-
-
                 var attatchmentInfo = new AttatchmentInfo
                 {
                     AttatchmentURL = url,
@@ -345,48 +347,117 @@ class Program
         {
             var sortedFiles = group.OrderBy(f => f.Timestamp).ToList();
             
-            AttatchmentInfo? oldestFile = null;
+            string? knownOriginalName = null;
+            string hashUpper = group.Key.ToUpperInvariant();
+            if (knownOriginals.ContainsKey(hashUpper))
+            {
+                knownOriginalName = knownOriginals[hashUpper];
+                Console.WriteLine($"[*] Found known original for hash {group.Key.Substring(0, 8)}: {knownOriginalName}");
+            }
+            
+            AttatchmentInfo? keepFile = null;
             var remainingFiles = new List<AttatchmentInfo>();
+            
+            if (!string.IsNullOrEmpty(knownOriginalName))
+            {
+                foreach (var file in sortedFiles)
+                {
+                    string actualPath = FindActualFilePath(file.Path);
+                    if (!string.IsNullOrEmpty(actualPath))
+                    {
+                        string currentFileName = Path.GetFileName(actualPath);
+                        if (currentFileName.Equals(knownOriginalName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            keepFile = new AttatchmentInfo
+                            {
+                                AttatchmentURL = file.AttatchmentURL,
+                                AuthorID = file.AuthorID,
+                                Username = file.Username,
+                                Timestamp = file.Timestamp,
+                                UNIXTimestamp = file.UNIXTimestamp,
+                                Path = actualPath,
+                                OriginalFilename = file.OriginalFilename,
+                                Hash = file.Hash
+                            };
+                            Console.WriteLine($"    Found file with known original name: {actualPath}");
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (keepFile == null)
+            {
+                foreach (var file in sortedFiles)
+                {
+                    string actualPath = FindActualFilePath(file.Path);
+                    if (!string.IsNullOrEmpty(actualPath))
+                    {
+                        keepFile = new AttatchmentInfo
+                        {
+                            AttatchmentURL = file.AttatchmentURL,
+                            AuthorID = file.AuthorID,
+                            Username = file.Username,
+                            Timestamp = file.Timestamp,
+                            UNIXTimestamp = file.UNIXTimestamp,
+                            Path = actualPath,
+                            OriginalFilename = file.OriginalFilename,
+                            Hash = file.Hash
+                        };
+                        
+                        if (!string.IsNullOrEmpty(knownOriginalName))
+                        {
+                            try
+                            {
+                                string extension = Path.GetExtension(knownOriginalName);
+                                if (string.IsNullOrEmpty(extension))
+                                {
+                                    extension = Path.GetExtension(actualPath);
+                                    knownOriginalName += extension;
+                                }
+                                
+                                string directory = Path.GetDirectoryName(actualPath) ?? "";
+                                string newPath = Path.Combine(directory, knownOriginalName);
+                                
+                                if (newPath != actualPath && !File.Exists(newPath))
+                                {
+                                    File.Move(actualPath, newPath);
+                                    keepFile.Path = newPath;
+                                    Console.WriteLine($"    Renamed to known original: {actualPath} -> {newPath}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"    [!] Error renaming to known original: {ex.Message}");
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
             
             foreach (var file in sortedFiles)
             {
                 string actualPath = FindActualFilePath(file.Path);
-                if (oldestFile == null && !string.IsNullOrEmpty(actualPath))
+                if (!string.IsNullOrEmpty(actualPath) && (keepFile == null || actualPath != keepFile.Path))
                 {
-                    oldestFile = new AttatchmentInfo
-                    {
-                        AttatchmentURL = file.AttatchmentURL,
-                        AuthorID = file.AuthorID,
-                        Username = file.Username,
-                        Timestamp = file.Timestamp,
-                        UNIXTimestamp = file.UNIXTimestamp,
-                        Path = actualPath,
-                        OriginalFilename = file.OriginalFilename,
-                        Hash = file.Hash
-                    };
-                }
-                else
-                {
-                    if (!string.IsNullOrEmpty(actualPath))
-                    {
-                        file.Path = actualPath;
-                    }
+                    file.Path = actualPath;
                     remainingFiles.Add(file);
                 }
             }
 
             Console.WriteLine($"[*] Processing duplicates for hash: {group.Key.Substring(0, 8)}...");
             
-            if (oldestFile == null)
+            if (keepFile == null)
             {
                 Console.WriteLine($"    [!] No files found for this hash group - all may have been moved already");
                 continue;
             }
 
-            Console.WriteLine($"    Keeping oldest existing: {oldestFile.Path} (from {oldestFile.Timestamp})");
+            Console.WriteLine($"    Keeping: {keepFile.Path} (from {keepFile.Timestamp})");
 
             var duplicatesByPath = remainingFiles
-                .Where(f => FindActualFilePath(f.Path) != oldestFile.Path)
+                .Where(f => FindActualFilePath(f.Path) != keepFile.Path)
                 .GroupBy(d => FindActualFilePath(d.Path))
                 .Where(g => !string.IsNullOrEmpty(g.Key))
                 .ToList();
