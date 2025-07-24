@@ -1,5 +1,5 @@
 # Aimmy Models & Configs
-A collection of EVERY model & config uploaded to the models channel, current models & configs consist of start of Aimmy - 07/14/2025, also includes all models & configs uploaded to the main Aimmy repository.
+A collection of EVERY model & config uploaded to the models channel, current models & configs consist of start of Aimmy - 07/14/2025, also includes all models & configs uploaded to the main [Aimmy repository](https://github.com/Babyhamsta/Aimmy).
 # Search Help
 See a list of all search filters at [search-help.md](https://github.com/whoswhip/aimmy-models/blob/main/search-help.md)
 # How?

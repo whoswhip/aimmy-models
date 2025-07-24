@@ -204,23 +204,6 @@
     "Args": null
   },
   {
-    "Hash": "1de5eef8c7275385cdc954c705eb2a9832190555",
-    "FileName": "Themida_arsenal4k.onnx",
-    "Author": "Ultralytics",
-    "License": "AGPL-3.0 https://ultralytics.com/license",
-    "Description": "Ultralytics best model trained on data.yaml",
-    "Created": "2023-12-05T21:28:25.373522",
-    "Version": "8.0.218",
-    "ModelType": "detect",
-    "Labels": "{0: 'Enemy'}",
-    "ImageSize": [
-      640,
-      640
-    ],
-    "BatchSize": 1,
-    "Args": null
-  },
-  {
     "Hash": "a134e29daa02952e9f5416d63e9d6680dae63f0e",
     "FileName": "skibidideadshot.onnx",
     "Author": "Ultralytics",
@@ -544,6 +527,23 @@
     "Args": null
   },
   {
+    "Hash": "1de5eef8c7275385cdc954c705eb2a9832190555",
+    "FileName": "Themida Arsenal (4k).onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 https://ultralytics.com/license",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2023-12-05T21:28:25.373522",
+    "Version": "8.0.218",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": null
+  },
+  {
     "Hash": "fe24e64795f0f996cc30a2eab00bcc96062beff3",
     "FileName": "Red_Match_2_by_noreaction.onnx",
     "Author": "Ultralytics",
@@ -770,7 +770,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-07-18T03:47:19Z",
+    "Created": "2025-07-20T06:23:15Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -2329,6 +2329,23 @@
     "Args": null
   },
   {
+    "Hash": "68c4945d14148c61d1fbe493085d2f866190c837",
+    "FileName": "Universal Hamsta v3.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 https://ultralytics.com/license",
+    "Description": "Ultralytics Universalv3 model trained on CustomCharacterPath_Universal.yaml",
+    "Created": "2023-10-23T08:22:27.044922",
+    "Version": "8.0.197",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": null
+  },
+  {
     "Hash": "5cf35a9c7f7039ba06a3b024ae4275ddb1d6a9ad",
     "FileName": "Strucid by metal_dev.onnx",
     "Author": "Ultralytics",
@@ -2676,23 +2693,6 @@
     "Description": "Ultralytics best model trained on data.yaml",
     "Created": "2024-02-18T20:09:14.510385",
     "Version": "8.1.9",
-    "ModelType": "detect",
-    "Labels": "{0: 'Enemy'}",
-    "ImageSize": [
-      640,
-      640
-    ],
-    "BatchSize": 1,
-    "Args": null
-  },
-  {
-    "Hash": "68c4945d14148c61d1fbe493085d2f866190c837",
-    "FileName": "Universal_Hamsta_v3.onnx",
-    "Author": "Ultralytics",
-    "License": "AGPL-3.0 https://ultralytics.com/license",
-    "Description": "Ultralytics Universalv3 model trained on CustomCharacterPath_Universal.yaml",
-    "Created": "2023-10-23T08:22:27.044922",
-    "Version": "8.0.197",
     "ModelType": "detect",
     "Labels": "{0: 'Enemy'}",
     "ImageSize": [
