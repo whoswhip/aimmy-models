@@ -359,6 +359,9 @@
             document.getElementById("files").appendChild(modelElement);
             document.getElementById("count").innerHTML = `${filteredFiles.length} ${currentType.charAt(0).toUpperCase() + currentType.slice(1)}`;
         });
+        if (filteredFiles.length === 0) {
+            document.getElementById("count").innerHTML = `0 ${currentType.charAt(0).toUpperCase() + currentType.slice(1)}`;
+        }
     }
 
     function showContextMenu(e) {
