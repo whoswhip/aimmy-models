@@ -527,6 +527,23 @@
     "Args": null
   },
   {
+    "Hash": "e812dfe913880c7a39be2ea0c10170bc57da8cdb",
+    "FileName": "cs2Zombies.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-07-21T16:32:24.821793",
+    "Version": "8.3.78",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "1de5eef8c7275385cdc954c705eb2a9832190555",
     "FileName": "Themida Arsenal (4k).onnx",
     "Author": "Ultralytics",
@@ -770,7 +787,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-07-20T06:23:15Z",
+    "Created": "2025-07-24T13:25:32Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -3281,6 +3298,23 @@
     "Args": null
   },
   {
+    "Hash": "af050325d66ec64e38e6ff6050e8fc2165ea0983",
+    "FileName": "ABI_v3.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on C:/Users/GreatestTech2EverLiv/Desktop/AutoLabelTool/ABI\\data.yaml",
+    "Created": "2025-07-21T09:26:22.882996",
+    "Version": "8.3.84",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "9107ca5cb4809008492b5ac6298882a3ed068c1c",
     "FileName": "CS2-CT_Enemy.onnx",
     "Author": "Ultralytics",
@@ -3347,6 +3381,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "e7e31be9adbb7cda28da8e8500d3f6d116b9417a",
+    "FileName": "Rainbow Latest.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-06-16T20:08:57.786598",
+    "Version": "8.3.155",
+    "ModelType": "detect",
+    "Labels": "{0: 'enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "0a65791509e2d12f1a5476bfdbc808c09a2cfe79",
