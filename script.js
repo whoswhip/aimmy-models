@@ -93,6 +93,11 @@
                 console.log('All primary endpoints failed, trying backup endpoints...');
                 await fetchFromEndpoints(endpoints.backup);
             }
+
+            files.sort((a, b) => a.name.localeCompare(b.name));
+            files.forEach(model => {
+                addFileToDOM(model);
+            });
         } catch (error) {
             console.error('All endpoints failed:', error);
         }
@@ -137,8 +142,6 @@
         const existingHashes = new Set(files.map(f => f.sha));
         const allowedExtensions = ['.onnx', '.pt', '.cfg'];
 
-        data.sort((a, b) => a.name.localeCompare(b.name));
-
         data.forEach(model => {
             const hasAllowedExtension = allowedExtensions.some(ext =>
                 model.name.toLowerCase().endsWith(ext)
@@ -146,7 +149,6 @@
 
             if (hasAllowedExtension) {
                 files.push(model);
-                addFileToDOM(model);
                 existingHashes.add(model.sha);
             }
         });
