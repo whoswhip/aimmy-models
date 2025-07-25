@@ -137,6 +137,8 @@
         const existingHashes = new Set(files.map(f => f.sha));
         const allowedExtensions = ['.onnx', '.pt', '.cfg'];
 
+        data.sort((a, b) => a.name.localeCompare(b.name));
+
         data.forEach(model => {
             const hasAllowedExtension = allowedExtensions.some(ext =>
                 model.name.toLowerCase().endsWith(ext)
@@ -344,24 +346,11 @@
         }
 
         document.getElementById("files").innerHTML = "";
+        filteredFiles.sort((a, b) => a.name.localeCompare(b.name));
         filteredFiles.forEach(file => {
-            let fileUrl = file.download_url;
-            let fileName = file.name.replace(/_/g, ' ');
-            let fileSize = formatBytes(file.size);
-            let modelHtml = `<a href="${fileUrl}" style="display:flex;"><span style="width: 80%; display: inline-block;">${fileName}</span>  <span style="width: 20%; text-align: right; margin-left: auto; display: inline-block;">${fileSize}</span></a>`;
-            let modelElement = document.createElement("li");
-            modelElement.className = "file-item";
-            modelElement.innerHTML = modelHtml;
-            modelElement.setAttribute('data-sha', file.sha);
-            modelElement.setAttribute('data-url', fileUrl);
-            modelElement.setAttribute('data-name', file.name);
-            modelElement.addEventListener('contextmenu', showContextMenu);
-            document.getElementById("files").appendChild(modelElement);
-            document.getElementById("count").innerHTML = `${filteredFiles.length} ${currentType.charAt(0).toUpperCase() + currentType.slice(1)}`;
-        });
-        if (filteredFiles.length === 0) {
-            document.getElementById("count").innerHTML = `0 ${currentType.charAt(0).toUpperCase() + currentType.slice(1)}`;
-        }
+            addFileToDOM(file);
+        }); 
+        updateFileCount();
     }
 
     function showContextMenu(e) {
