@@ -6,89 +6,50 @@ on:
       - 'tools/onnx-md-parser/**'
       - 'models/**'
       - '.github/workflows/onnx-md-parser.yml'
+
   workflow_dispatch:
 
 jobs:
-  build:
+  build-run-upload:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clone Aimmy models folder
-        run: |
-          git clone --filter=blob:none --sparse https://github.com/babyhamsta/aimmy.git temp-aimmy
-          cd temp-aimmy
-          git sparse-checkout set models
-          cp -r models/* ../models/ || true
-          cd ..
-          rm -rf temp-aimmy
+    - name: Clone Aimmy models folder
+      run: |
+        git clone --filter=blob:none --sparse https://github.com/babyhamsta/aimmy.git temp-aimmy
+        cd temp-aimmy
+        git sparse-checkout set models
+        cp -r models/* ../models/ || true
+        cd ..
+        rm -rf temp-aimmy
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.x'
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.x'
 
-      - name: Build ONNX-MD-Parser
-        run: |
-          cd tools/onnx-md-parser
-          dotnet build --configuration Release
+    - name: Build ONNX-MD-Parser
+      run: |
+        cd tools/onnx-md-parser
+        dotnet build --configuration Release
 
-      - name: Upload build output
-        uses: actions/upload-artifact@v4
-        with:
-          name: onnx-md-parser-build
-          path: tools/onnx-md-parser/bin/Release/net8.0
+    - name: Run ONNX-MD-Parser on ONNX models
+      run: |
+        cd tools/onnx-md-parser/bin/Release/net8.0
+        ./onnx-md-parser --dir ../../../../../models --md-path ../../../../../models/metadata.json --ignore true
 
-  run:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Download build output
-        uses: actions/download-artifact@v4
-        with:
-          name: onnx-md-parser-build
-          path: tools/onnx-md-parser/bin/Release/net8.0
-
-      - name: Run ONNX-MD-Parser on ONNX models
-        run: |
-          cd tools/onnx-md-parser/bin/Release/net8.0
-          ./onnx-md-parser --dir ../../../../../models --md-path ../../../../../models/metadata.json --ignore true
-
-      - name: Upload metadata.json
-        uses: actions/upload-artifact@v4
-        with:
-          name: metadata-json
-          path: models/metadata.json
-
-  upload:
-    runs-on: ubuntu-latest
-    needs: run
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Download metadata.json
-        uses: actions/download-artifact@v4
-        with:
-          name: metadata-json
-          path: models
-
-      - name: Commit and Push Metadata
-        run: |
-          git config --global user.name "GitHub Actions Bot"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add models/metadata.json
-          git commit -m "chore: update metadata.json from ONNX-MD-Parser workflow"
-          git push origin HEAD
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Commit and Push Metadata
+      run: |
+        git config --global user.name "GitHub Actions Bot"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        ls
+        git add models/metadata.json
+        git commit -m "chore: update metadata.json from ONNX-MD-Parser workflow"
+        git push origin HEAD
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
