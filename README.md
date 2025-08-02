@@ -9,4 +9,4 @@ The new batch of configs (12-29-24 - 06-14-25) was scraped using the same simple
 Plain and simple reason why was just to make it some what easier to find and download models & configs for Aimmy or any other program that can use the models.
 
 # License
-This project is licensed under the [AGPL-3.0 License](LICENSE).
+This project is licensed under the [GPL-3.0 License](LICENSE).
