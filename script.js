@@ -425,7 +425,7 @@ function copyShortUrl() {
         const shortName = `${url}@${sha.substring(0, 6)}`;
         let shortUrl = `https://models.whoswhip.dev/?model=${shortName}`;
 
-        if (type == "configs") {
+        if (currentType == "configs") {
             shortUrl = `https://models.whoswhip.dev/?model=${shortName}&type=configs`;
         }
 
