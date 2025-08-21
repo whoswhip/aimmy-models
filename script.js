@@ -423,7 +423,13 @@ function copyShortUrl() {
         const url = contextMenuTarget.getAttribute('data-url').split('/').pop();
         const sha = contextMenuTarget.getAttribute('data-sha');
         const shortName = `${url}@${sha.substring(0, 6)}`;
-        navigator.clipboard.writeText(`https://models.whoswhip.dev/?model=${shortName}`)
+        let shortUrl = `https://models.whoswhip.dev/?model=${shortName}`;
+
+        if (type == "configs") {
+            shortUrl = `https://models.whoswhip.dev/?model=${shortName}&type=configs`;
+        }
+
+        navigator.clipboard.writeText(shortUrl)
             .catch(err => {
                 console.error('Failed to copy Short URL:', err);
             });
