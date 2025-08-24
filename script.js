@@ -52,7 +52,7 @@ function initializePage() {
 
     const hash = window.location.hash.substring(1).toLowerCase();
     if (hash) {
-        document.getElementById("search").value = hash;
+        document.getElementById("search").value = decodeURIComponent(hash);
     }
     fetchMetadata();
     getFiles().then(() => {
