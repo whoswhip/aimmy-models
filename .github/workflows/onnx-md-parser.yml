@@ -48,6 +48,7 @@ jobs:
         git config --global user.name "GitHub Actions Bot"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         ls
+        git pull origin HEAD
         git add models/metadata.json
         git commit -m "chore: update metadata.json from ONNX-MD-Parser workflow"
         git push origin HEAD
