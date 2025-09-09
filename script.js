@@ -64,6 +64,7 @@ function initializePage() {
             let modelName = decodeURIComponent(model.split('@')[0]); // model filename
             let modelHash = model.split('@')[1];                     // first 6 characters of the hash
             document.getElementById("search").value = `h:${modelHash}`;
+            search();
             let file = files.find(f => f.name === modelName && f.sha.startsWith(modelHash));
             if (file) {
                 window.open(file.download_url);
