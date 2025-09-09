@@ -424,10 +424,10 @@ function copyShortUrl() {
         const url = contextMenuTarget.getAttribute('data-url').split('/').pop();
         const sha = contextMenuTarget.getAttribute('data-sha');
         const shortName = `${url}@${sha.substring(0, 6)}`;
-        let shortUrl = `https://models.whoswhip.dev/?model=${shortName}#h:${sha}`;
+        let shortUrl = `https://models.whoswhip.dev/?model=${shortName}#h:${sha.substring(0, 6)}`;
 
         if (currentType == "configs") {
-            shortUrl = `https://models.whoswhip.dev/?model=${shortName}&type=configs#h:${sha}`;
+            shortUrl = `https://models.whoswhip.dev/?model=${shortName}&type=configs#h:${sha.substring(0, 6)}`;
         }
 
         navigator.clipboard.writeText(shortUrl)
