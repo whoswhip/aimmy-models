@@ -66,7 +66,8 @@ function initializePage() {
             let file = files.find(f => f.name === modelName && f.sha.startsWith(modelHash));
             // download file
             if (file) {
-                window.open(file.download_url, '_blank');
+                window.open(file.download_url);
+                window.location.assign(file.download_url);
             }
         }
     });
@@ -339,9 +340,9 @@ function search() {
             clean: (s) => s.replace(/simplified:(true|false)/, "").trim()
         },
         {
-            test: /githash:([a-z0-9]+)/,
+            test: /(?:githash|h):([a-z0-9]+)/,
             apply: (files, match) => files.filter(file => file.sha.includes(match[1])),
-            clean: (s) => s.replace(/githash:[a-z0-9]+/, "").trim()
+            clean: (s) => s.replace(/(?:githash|h):[a-z0-9]+/, "").trim()
         }
     ];
 
@@ -423,10 +424,10 @@ function copyShortUrl() {
         const url = contextMenuTarget.getAttribute('data-url').split('/').pop();
         const sha = contextMenuTarget.getAttribute('data-sha');
         const shortName = `${url}@${sha.substring(0, 6)}`;
-        let shortUrl = `https://models.whoswhip.dev/?model=${shortName}`;
+        let shortUrl = `https://models.whoswhip.dev/?model=${shortName}#h:${sha}`;
 
         if (currentType == "configs") {
-            shortUrl = `https://models.whoswhip.dev/?model=${shortName}&type=configs`;
+            shortUrl = `https://models.whoswhip.dev/?model=${shortName}&type=configs#h:${sha}`;
         }
 
         navigator.clipboard.writeText(shortUrl)
