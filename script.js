@@ -63,8 +63,8 @@ function initializePage() {
             let model = urlParams.get("model");
             let modelName = decodeURIComponent(model.split('@')[0]); // model filename
             let modelHash = model.split('@')[1];                     // first 6 characters of the hash
+            document.getElementById("search").value = `h:${modelHash}`;
             let file = files.find(f => f.name === modelName && f.sha.startsWith(modelHash));
-            // download file
             if (file) {
                 window.open(file.download_url);
                 window.location.assign(file.download_url);
@@ -424,10 +424,10 @@ function copyShortUrl() {
         const url = contextMenuTarget.getAttribute('data-url').split('/').pop();
         const sha = contextMenuTarget.getAttribute('data-sha');
         const shortName = `${url}@${sha.substring(0, 6)}`;
-        let shortUrl = `https://models.whoswhip.dev/?model=${shortName}#h:${sha.substring(0, 6)}`;
+        let shortUrl = `https://models.whoswhip.dev/?model=${shortName}`;
 
         if (currentType == "configs") {
-            shortUrl = `https://models.whoswhip.dev/?model=${shortName}&type=configs#h:${sha.substring(0, 6)}`;
+            shortUrl = `https://models.whoswhip.dev/?model=${shortName}&type=configs`;
         }
 
         navigator.clipboard.writeText(shortUrl)
