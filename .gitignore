@@ -318,3 +318,5 @@ tools/discord-file-scraper/onnx
 tools/discord-file-scraper/cfg
 tools/discord-file-scraper/pt
 tools/discord-file-scraper/duplicates
+.env
+**/**/.env

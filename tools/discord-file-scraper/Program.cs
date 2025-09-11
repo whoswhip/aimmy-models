@@ -43,7 +43,7 @@ class Program
             cliOnly = true;
 
 
-        if (args.Length == 0)
+        if (args.Length == 0 && !cliOnly)
         {
             Console.Write("[?] Discord token: ");
             token = Console.ReadLine()?.Trim();
@@ -96,6 +96,14 @@ class Program
                 Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download]");
                 return;
             }
+        }
+        if (cliOnly)
+        {
+            Console.WriteLine($"[*] Using token: {(token.Length > 8 ? token.Substring(0, 4) + new string('*', token.Length - 8) + token.Substring(token.Length - 4) : token)}");
+            Console.WriteLine($"[*] Using guild ID: {guildId}");
+            Console.WriteLine($"[*] Using channel ID: {channelId}");
+            Console.WriteLine($"[*] Check duplicates: {checkDuplicates}");
+            Console.WriteLine($"[*] Skip download: {skipDownload}");
         }
 
         foreach (var extension in acceptedExtensions)
