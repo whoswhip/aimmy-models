@@ -17,10 +17,13 @@ class Program
     static readonly HttpClient client = new HttpClient();
     static readonly string[] acceptedExtensions = { "onnx", "pt", "cfg" };
     static List<AttatchmentInfo> messages = new List<AttatchmentInfo>();
+    static List<FileInfo> fileInfos = new List<FileInfo>();
     static Dictionary<string, string> knownOriginals = new Dictionary<string, string>
     {
         { "8C33ECC90221267FCD6FB7DF7295841F4BFB061F3E3208344AB7E80C998AD40B", "Themida Arsenal (4k).onnx" },
-        { "6E814BA61CE5A8CDBEBEB95F28B98DE562761A2F24A559A7A4EA417DDEB0A4E6", "Universal Hamsta v3.onnx"}
+        { "6E814BA61CE5A8CDBEBEB95F28B98DE562761A2F24A559A7A4EA417DDEB0A4E6", "Universal Hamsta v3.onnx"},
+        { "46A7FC44BFE047E3078ED924DA5D7BEDC23561D5754690CB30B8E54416EA7172", "AIOv7.onnx"},
+        { "6E602D7B48CE6C701BD83417397AEA55C329E25C0951107EBD22885DFF3B07C2", "AIOv11.onnx"}
     };
 
     static async Task Main(string[] args)
@@ -31,7 +34,9 @@ class Program
         bool checkDuplicates = false;
         bool skipDownload = false;
         bool cliOnly = false;
+        bool deleteOld = false;
         int offset = 0;
+        DateTime start = DateTime.UtcNow;
 
         DotEnv.Load(".env");
         token ??= Environment.GetEnvironmentVariable("DISCORD_TOKEN");
@@ -39,6 +44,7 @@ class Program
         channelId ??= Environment.GetEnvironmentVariable("DISCORD_CHANNEL_ID");
         checkDuplicates = (Environment.GetEnvironmentVariable("CHECK_DUPLICATES") ?? "false").ToLowerInvariant() == "true";
         skipDownload = (Environment.GetEnvironmentVariable("SKIP_DOWNLOAD") ?? "false").ToLowerInvariant() == "true";
+        deleteOld = (Environment.GetEnvironmentVariable("DELETE_OLD") ?? "false").ToLowerInvariant() == "true";
         if (!string.IsNullOrWhiteSpace(token) && !string.IsNullOrWhiteSpace(guildId) && !string.IsNullOrWhiteSpace(channelId))
             cliOnly = true;
 
@@ -87,6 +93,9 @@ class Program
                         case "skip-download":
                             skipDownload = true;
                             break;
+                        case "delete-old":
+                            deleteOld = true;
+                            break;
                     }
                     cliOnly = true;
                 }
@@ -106,6 +115,17 @@ class Program
             Console.WriteLine($"[*] Skip download: {skipDownload}");
         }
 
+        if (deleteOld)
+        {
+            Console.WriteLine("[*] Deleting old files...");
+            foreach (var ext in acceptedExtensions)
+            {
+                string dir = ext.TrimStart('.');
+                if (Directory.Exists(dir))
+                    Directory.Delete(dir, true);
+            }
+        }
+
         foreach (var extension in acceptedExtensions)
         {
             if (!Directory.Exists(extension.TrimStart('.')))
@@ -114,6 +134,7 @@ class Program
 
         if (!skipDownload)
         {
+            LoadExistingFiles(true);
             while (true)
             {
                 try
@@ -139,7 +160,7 @@ class Program
                         break;
                     }
 
-                    await ProccessMessagesAsync(messages);
+                    await ProcessMessagesAsync(messages);
 
                     offset += messages.Count;
                     await Task.Delay(750);
@@ -204,7 +225,7 @@ class Program
         }
     }
 
-    static async Task ProccessMessagesAsync(JArray messages)
+    static async Task ProcessMessagesAsync(JArray messages)
     {
         foreach (var _message in messages)
         {
@@ -238,7 +259,7 @@ class Program
         }
     }
 
-    static async Task DownloadAsync(string url, string extension, JToken attatchment, DateTime timestamp, string? authorId, string? username)
+    static async Task DownloadAsync(string url, string extension, JToken attachment, DateTime timestamp, string? authorId, string? username)
     {
         try
         {
@@ -251,63 +272,50 @@ class Program
                 }
 
                 byte[] file = await response.Content.ReadAsByteArrayAsync();
-                string filename = !string.IsNullOrWhiteSpace(attatchment["title"]?.Value<string>()) ? $"{attatchment["title"]?.Value<string>()}.{extension}" : attatchment["filename"]?.Value<string>() ?? $"{GenerateString(8)}.{extension}";
+                string filename = !string.IsNullOrWhiteSpace(attachment["title"]?.Value<string>()) ? $"{attachment["title"]?.Value<string>()}.{extension}" : attachment["filename"]?.Value<string>() ?? $"{GenerateString(8)}.{extension}";
                 string filePath = Path.Combine(extension, filename);
-                string hash = SHA256(file);
-
+                byte[] hashBytes = SHA256Bytes(file);
+                string hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+                
+                if (filename.StartsWith("best", StringComparison.OrdinalIgnoreCase))
+                    return;
                 if (File.Exists(filePath))
                 {
                     DateTime existingFileTime = File.GetLastWriteTimeUtc(filePath);
                     string existingFileHash = SHA256(await File.ReadAllBytesAsync(filePath));
 
-                    if (existingFileTime <= timestamp && existingFileHash == hash)
+                    if (existingFileHash == hash)
                     {
-                        string newerDir = Path.Combine(extension, "newer");
-                        if (!Directory.Exists(newerDir))
-                            Directory.CreateDirectory(newerDir);
-
-                        string newFilePath = Path.Combine(newerDir, filename);
-
-                        int counter = 1;
-                        string originalNewFilePath = newFilePath;
-                        while (File.Exists(newFilePath))
+                        if (existingFileTime >= timestamp)
                         {
-                            string nameWithoutExt = Path.GetFileNameWithoutExtension(originalNewFilePath);
-                            string ext = Path.GetExtension(originalNewFilePath);
-                            newFilePath = Path.Combine(newerDir, $"{nameWithoutExt}_{counter}{ext}");
-                            counter++;
+                            Console.WriteLine($"[*] Skipping download, file already exists and is up to date: {filePath}");
+                            return;
                         }
-
-                        Console.WriteLine($"[+] Keeping older file: {filePath} (from {existingFileTime})");
-                        Console.WriteLine($"[+] Saving newer file to: {newFilePath} (from {timestamp})");
-
-                        await File.WriteAllBytesAsync(newFilePath, file);
-                        File.SetCreationTimeUtc(newFilePath, timestamp);
-                        File.SetLastWriteTimeUtc(newFilePath, timestamp);
-                        File.SetLastAccessTimeUtc(newFilePath, timestamp);
-                        return;
+                        else
+                        {
+                            string newerDir = Path.Combine(extension, "newer");
+                            if (!Directory.Exists(newerDir))
+                                Directory.CreateDirectory(newerDir);
+                            string newerFilePath = Path.Combine(newerDir, filename);
+                            int counter = 1;
+                            while (File.Exists(newerFilePath))
+                            {
+                                string nameWithoutExt = Path.GetFileNameWithoutExtension(filename);
+                                string ext = Path.GetExtension(filename);
+                                newerFilePath = Path.Combine(newerDir, $"{nameWithoutExt}_{counter}{ext}");
+                                counter++;
+                            }
+                            filePath = newerFilePath;
+                            Console.WriteLine($"[~] Existing file is older, saving to 'newer' directory: {filePath}");
+                        }
                     }
                     else
                     {
-                        string newerDir = Path.Combine(extension, "newer");
-                        if (!Directory.Exists(newerDir))
-                            Directory.CreateDirectory(newerDir);
-
-                        string newerFilePath = Path.Combine(newerDir, filename);
-
-                        int counter = 1;
-                        string originalNewerFilePath = newerFilePath;
-                        while (File.Exists(newerFilePath))
-                        {
-                            string nameWithoutExt = Path.GetFileNameWithoutExtension(originalNewerFilePath);
-                            string ext = Path.GetExtension(originalNewerFilePath);
-                            newerFilePath = Path.Combine(newerDir, $"{nameWithoutExt}_{counter}{ext}");
-                            counter++;
-                        }
-
-                        File.Move(filePath, newerFilePath);
-                        Console.WriteLine($"[+] Moved newer file to: {newerFilePath} (from {existingFileTime})");
-                        Console.WriteLine($"[+] Keeping older file: {filePath} (from {timestamp})");
+                        string nameWithoutExt = Path.GetFileNameWithoutExtension(filename);
+                        string ext = Path.GetExtension(filename);
+                        string duplicateFilePath = Path.Combine(extension, $"{nameWithoutExt}_{GenerateString(4)}{ext}");
+                        filePath = duplicateFilePath;
+                        Console.WriteLine($"[~] File with same name but different content exists, saving as: {filePath}");
                     }
                 }
 
@@ -318,20 +326,24 @@ class Program
                     Username = username,
                     Timestamp = timestamp,
                     UNIXTimestamp = ((DateTimeOffset)timestamp).ToUnixTimeSeconds(),
-                    OriginalFilename = !string.IsNullOrWhiteSpace(attatchment["title"]?.Value<string>())
-                                        ? $"{attatchment["title"]?.Value<string>()}.{extension}"
-                                        : attatchment["filename"]?.Value<string>() ?? $"{GenerateString(8)}.{extension}",
+                    OriginalFilename = !string.IsNullOrWhiteSpace(attachment["title"]?.Value<string>())
+                                        ? $"{attachment["title"]?.Value<string>()}.{extension}"
+                                        : attachment["filename"]?.Value<string>() ?? $"{GenerateString(8)}.{extension}",
                     Path = filePath,
                     Hash = hash
                 };
+                var fileInfo = new FileInfo(attatchmentInfo.OriginalFilename, hashBytes, attatchmentInfo.UNIXTimestamp);
 
                 messages.Add(attatchmentInfo);
+                fileInfos.Add(fileInfo);
                 Console.WriteLine($"[+] Downloaded: {filePath} by {username} created at {timestamp}");
 
                 await File.WriteAllBytesAsync(filePath, file);
                 File.SetCreationTimeUtc(filePath, timestamp);
                 File.SetLastWriteTimeUtc(filePath, timestamp);
                 File.SetLastAccessTimeUtc(filePath, timestamp);
+                if (!FileInfo.FileInfoInList(fileInfos, fileInfo))
+                    await FileInfo.AppendFileInfoAsync("metadata.dat", fileInfo);
             }
         }
         catch (Exception ex)
@@ -342,14 +354,42 @@ class Program
     }
     static void CheckDuplicates()
     {
-        Console.WriteLine("[*] Checking for duplicate files...");
+        Console.WriteLine("[*] Checking for duplicate files (messages + metadata)...");
 
         string duplicatesDir = "duplicates";
         if (!Directory.Exists(duplicatesDir))
             Directory.CreateDirectory(duplicatesDir);
 
+        var existingKeys = new HashSet<string>(messages.Select(m => m.Hash + "::" + Path.GetFileName(m.OriginalFilename)), StringComparer.OrdinalIgnoreCase);
+
+        foreach (var fi in fileInfos)
+        {
+            string hashLower = BitConverter.ToString(fi.SHA256Hash).Replace("-", "").ToLowerInvariant();
+            string key = hashLower + "::" + Path.GetFileName(fi.FileName);
+            if (existingKeys.Contains(key))
+                continue;
+
+            string resolvedPath = FindFileInKnownDirectories(fi.FileName);
+            if (string.IsNullOrEmpty(resolvedPath))
+                resolvedPath = fi.FileName;
+
+            var attach = new AttatchmentInfo
+            {
+                AttatchmentURL = string.Empty,
+                AuthorID = null,
+                Username = "Unknown",
+                Timestamp = DateTimeOffset.FromUnixTimeSeconds(fi.Timestamp).UtcDateTime,
+                UNIXTimestamp = fi.Timestamp,
+                Path = resolvedPath,
+                OriginalFilename = Path.GetFileName(fi.FileName),
+                Hash = hashLower
+            };
+            messages.Add(attach);
+            existingKeys.Add(key);
+        }
+
         var duplicateGroups = messages
-            .GroupBy(m => m.Hash)
+            .GroupBy(m => m.Hash, StringComparer.OrdinalIgnoreCase)
             .Where(g => g.Count() > 1)
             .ToList();
 
@@ -519,10 +559,35 @@ class Program
         Console.WriteLine("[*] Duplicate checking completed.");
     }
 
-    static void LoadExistingFiles()
+    static string FindFileInKnownDirectories(string fileName)
+    {
+        if (File.Exists(fileName)) return fileName;
+        foreach (var ext in acceptedExtensions)
+        {
+            string root = ext.TrimStart('.');
+            string candidate = Path.Combine(root, fileName);
+            if (File.Exists(candidate)) return candidate;
+            string newer = Path.Combine(root, "newer", fileName);
+            if (File.Exists(newer)) return newer;
+            string dups = Path.Combine("duplicates", ext, fileName);
+            if (File.Exists(dups)) return dups;
+        }
+        return string.Empty;
+    }
+
+    static void LoadExistingFiles(bool metadataOnly = false)
     {
         Console.WriteLine("[*] Loading existing files for duplicate checking...");
 
+        if (metadataOnly)
+        {
+            if (!File.Exists("metadata.dat"))
+                return;
+
+            fileInfos = FileInfo.LoadFileInfosAsync("metadata.dat").Result;
+            Console.WriteLine($"[*] Loaded {fileInfos.Count} file metadata entries.");
+            return;
+        }
         foreach (var extension in acceptedExtensions)
         {
             string extensionDir = extension.TrimStart('.');
@@ -538,6 +603,8 @@ class Program
             }
         }
 
+        fileInfos = FileInfo.LoadFileInfosAsync("metadata.dat").Result;
+        Console.WriteLine($"[*] Loaded {fileInfos.Count} file metadata entries.");
         Console.WriteLine($"[*] Loaded {messages.Count} files for processing.");
     }
 
@@ -590,6 +657,13 @@ class Program
             return BitConverter.ToString(sha256.ComputeHash(file)).Replace("-", "").ToLowerInvariant();
         }
     }
+    static byte[] SHA256Bytes(byte[] file)
+    {
+        using (var sha256 = System.Security.Cryptography.SHA256.Create())
+        {
+            return sha256.ComputeHash(file);
+        }
+    }
 
     static string FindActualFilePath(string originalPath)
     {
@@ -630,6 +704,103 @@ class Program
         }
 
         return "";
+    }
+}
+
+
+public sealed class FileInfo
+{
+    private const int SHA256Length = 32;
+    private const int TimestampLength = 8;
+
+    public string FileName { get; }
+    public byte[] SHA256Hash { get; }
+    public long Timestamp { get; }
+
+    public FileInfo(string filename, byte[] hash, long timestamp)
+    {
+        if (filename is null) throw new ArgumentNullException(nameof(filename));
+        if (hash is null) throw new ArgumentNullException(nameof(hash));
+        if (hash.Length != SHA256Length) throw new ArgumentException($"Hash must be {SHA256Length} bytes long.", nameof(hash));
+
+        byte[] name = System.Text.Encoding.UTF8.GetBytes(filename);
+        if (name.Length > byte.MaxValue) throw new ArgumentException($"Filename must be less than {byte.MaxValue} bytes long.", nameof(filename));
+
+        FileName = filename;
+        SHA256Hash = (byte[])hash.Clone();
+        Timestamp = timestamp;
+    }
+
+    public byte[] ToBytes()
+    {
+        byte[] name = System.Text.Encoding.UTF8.GetBytes(FileName);
+        if (name.Length > byte.MaxValue) throw new InvalidOperationException($"Filename must be less than {byte.MaxValue} bytes long.");
+
+        using var ms = new MemoryStream(1 + name.Length + SHA256Length + TimestampLength);
+        ms.WriteByte((byte)name.Length);
+        ms.Write(name, 0, name.Length);
+        ms.Write(SHA256Hash, 0, SHA256Hash.Length);
+        ms.Write(BitConverter.GetBytes(Timestamp), 0, TimestampLength);
+        return ms.ToArray();
+    }
+
+    public static FileInfo FromBytes(byte[] data)
+    {
+        if (data is null) throw new ArgumentNullException(nameof(data));
+        if (data.Length < 1 + SHA256Length + TimestampLength) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
+        using var ms = new MemoryStream(data);
+        int nameLength = ms.ReadByte();
+        if (nameLength < 0) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
+        if (ms.Length < 1 + nameLength + SHA256Length + TimestampLength) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
+        byte[] name = new byte[nameLength];
+        ms.Read(name, 0, nameLength);
+        byte[] hash = new byte[SHA256Length];
+        ms.Read(hash, 0, SHA256Length);
+        byte[] timestampBytes = new byte[TimestampLength];
+        ms.Read(timestampBytes, 0, TimestampLength);
+        long timestamp = BitConverter.ToInt64(timestampBytes, 0);
+        return new FileInfo(System.Text.Encoding.UTF8.GetString(name), hash, timestamp);
+    }
+
+    public static async Task<List<FileInfo>> LoadFileInfosAsync(string filePath)
+    {
+        if (filePath is null) throw new ArgumentNullException(nameof(filePath));
+        var fileInfos = new List<FileInfo>();
+        if (!File.Exists(filePath)) return fileInfos;
+
+        byte[] data = await File.ReadAllBytesAsync(filePath);
+        int index = 0;
+        while (index < data.Length)
+        {
+            int nameLength = data[index];
+            if (nameLength <= 0 || index + 1 + nameLength + SHA256Length + TimestampLength > data.Length)
+                break;
+
+            byte[] entryData = new byte[1 + nameLength + SHA256Length + TimestampLength];
+            Array.Copy(data, index, entryData, 0, entryData.Length);
+            var fileInfo = FromBytes(entryData);
+            fileInfos.Add(fileInfo);
+            index += entryData.Length;
+        }
+        return fileInfos;
+    }
+
+    public static async Task AppendFileInfoAsync(string filePath, FileInfo fileInfo)
+    {
+        if (filePath is null) throw new ArgumentNullException(nameof(filePath));
+        if (fileInfo is null) throw new ArgumentNullException(nameof(fileInfo));
+        if (!File.Exists(filePath))
+            await File.WriteAllBytesAsync(filePath, Array.Empty<byte>());
+        byte[] data = fileInfo.ToBytes();
+        using var fs = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.None);
+        await fs.WriteAsync(data, 0, data.Length);
+    }
+
+    public static bool FileInfoInList(List<FileInfo> list, FileInfo fileInfo)
+    {
+        return list.Any(f => f.FileName == fileInfo.FileName &&
+                            f.Timestamp == fileInfo.Timestamp &&
+                            f.SHA256Hash.SequenceEqual(fileInfo.SHA256Hash));
     }
 }
 
