@@ -1518,7 +1518,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-09-09T20:37:49Z",
+    "Created": "2025-09-12T19:27:54Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -1851,6 +1851,23 @@
     ],
     "BatchSize": 1,
     "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
+    "Hash": "6aad3ba12f5a17ffece03d0eed3254e81ce05193",
+    "FileName": "CS2_v1.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on E:/CS2-Dataset\\data.yaml",
+    "Created": "2025-09-09T09:15:39.554655",
+    "Version": "8.1.43",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": null
   },
   {
     "Hash": "d58fec8620316d2269ee141411762fa5737c68c3",
@@ -3179,6 +3196,23 @@
     "Args": null
   },
   {
+    "Hash": "27876254b78fe2ffb0ba44173778eba64884d20c",
+    "FileName": "TheBronx3-by-GoodKnight.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2025-09-10T12:22:09.835021",
+    "Version": "8.3.189",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "03eb2cddf04df7801e656526b385dd25a4a6d3d8",
     "FileName": "MEMELINES_-_Frontlines_3.6k.onnx",
     "Author": "Ultralytics",
@@ -3553,6 +3587,23 @@
     "Args": null
   },
   {
+    "Hash": "ae7ce2be0302b53a8a24762b75ecdc78190de596",
+    "FileName": "FL84_180.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on C:/Users/GreatestTech2EverLiv/Desktop/AutoLabelTool/FL84\\data.yaml",
+    "Created": "2025-09-10T16:00:08.637160",
+    "Version": "8.3.84",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      192,
+      192
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': 11, 'nms': False}"
+  },
+  {
     "Hash": "58b829f494f465c6d07971f2d17f6c1315655fc2",
     "FileName": "WZ_50k_v1.onnx",
     "Author": "Ultralytics",
@@ -3757,6 +3808,23 @@
     "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
+    "Hash": "d6bafbc6ec4952e253c0f64fce3e9b98fef86102",
+    "FileName": "BattleField1.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2025-09-09T21:34:36.213024",
+    "Version": "8.3.189",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "435be534733f5b65b049e9e8458868ba9a5af540",
     "FileName": "10kFinals.onnx",
     "Author": "Ultralytics",
@@ -3772,6 +3840,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "0d6d343bc794ef5fa2ad2449530b1183d4febe08",
+    "FileName": "TempzyVERSUSDemo.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on G:/noidea\\data.yaml",
+    "Created": "2025-09-08T15:05:28.099011",
+    "Version": "8.3.84",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "d90e51ec8221fa206fdb0149571102e7b0bcf2af",
@@ -3942,6 +4027,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "d35db5128b14ef570ab9d9dd0025911dea8f055a",
+    "FileName": "TF2-by-GoodKnight.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2025-09-09T17:15:10.262811",
+    "Version": "8.3.189",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "a35c02b901d890fb42ccd00f9a916baf0ef6d893",
@@ -4180,6 +4282,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "ecf409d7b41027508efa9340ac347f6dd10c88b7",
+    "FileName": "FL84_320.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on C:/Users/GreatestTech2EverLiv/Desktop/AutoLabelTool/FL84\\data.yaml",
+    "Created": "2025-09-10T16:00:09.745571",
+    "Version": "8.3.84",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      320,
+      320
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': 11, 'nms': False}"
   },
   {
     "Hash": "642be5bd3a7431398c77555923e382017c51822f",
