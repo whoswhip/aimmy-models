@@ -170,7 +170,7 @@ async function fetchSingleEndpoint(url) {
 
 function addFileToDOM(model) {
     const fileUrl = model.download_url;
-    const fileName = model.name.replace(/_/g, ' ').split("_~~")[0];
+    const fileName = model.name.split("_~~")[0].replace(/_/g, ' ');
     const fileSize = formatBytes(model.size);
     const fileHtml = `<a href="${fileUrl}" style="display:flex;"><span style="width: 80%; display: inline-block;">${fileName}</span>  <span style="width: 20%; text-align: right; margin-left: auto; display: inline-block;">${fileSize}</span></a>`;
     const fileElement = document.createElement("li");
