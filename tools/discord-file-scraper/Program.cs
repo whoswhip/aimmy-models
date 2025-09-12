@@ -313,7 +313,7 @@ class Program
                     {
                         string nameWithoutExt = Path.GetFileNameWithoutExtension(filename);
                         string ext = Path.GetExtension(filename);
-                        string duplicateFilePath = Path.Combine(extension, $"{nameWithoutExt}_{GenerateString(4)}{ext}");
+                        string duplicateFilePath = Path.Combine(extension, $"{nameWithoutExt}_~~{GenerateString(4)}{ext}");
                         filePath = duplicateFilePath;
                         Console.WriteLine($"[~] File with same name but different content exists, saving as: {filePath}");
                     }
