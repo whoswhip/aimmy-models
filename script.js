@@ -345,9 +345,9 @@ function search() {
             clean: (s) => s.replace(/simplified:(true|false)/, "").trim()
         },
         {
-            test: /(?:githash|h):([a-z0-9]+)/,
+            test: /(?:githash|h|gh|hash):([a-z0-9]+)/,
             apply: (files, match) => files.filter(file => file.sha.includes(match[1])),
-            clean: (s) => s.replace(/(?:githash|h):[a-z0-9]+/, "").trim()
+            clean: (s) => s.replace(/(?:githash|h|gh|hash):[a-z0-9]+/, "").trim()
         }
     ];
 
