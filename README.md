@@ -8,5 +8,11 @@ The new batch of configs (12-29-24 - 06-14-25) was scraped using the same simple
 # Why?
 Plain and simple reason why was just to make it some what easier to find and download models & configs for Aimmy or any other program that can use the models.
 
+# Removing your model
+Either message me on Discord (@whoswhip) or make an issue ticket.
+When messaging me or making an issue ticket PLEASE prefix your message/title with "Model Removal:", provide the model name, file hash (optional), and a reason for removing it.
+To get the hash you can open Powershell and type `Get-FileHash .\filename.onnx`
+All requests WILL be checked to see if you are the original poster of the model.
+
 # License
 This project is licensed under the [GPL-3.0 License](LICENSE).
