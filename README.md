@@ -8,6 +8,9 @@ The new batch of configs (12-29-24 - 06-14-25) was scraped using the same simple
 # Why?
 Plain and simple reason why was just to make it some what easier to find and download models & configs for Aimmy or any other program that can use the models.
 
+# How do I add my model?
+Simply make a model post to [|# 📦・models|](https://discord.com/channels/1172932293288013936/1175942737632178256) with the model uploaded as a file directly to **Discord**, downloads such as mediafire or google drive are NOT supported.
+
 # Removing your model
 Either message me on Discord (@whoswhip) or make an issue ticket.
 When messaging me or making an issue ticket PLEASE prefix your message/title with "Model Removal:", provide the model name, file hash (optional), and a reason for removing it.
