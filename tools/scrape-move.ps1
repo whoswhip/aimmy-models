@@ -4,7 +4,7 @@ param (
 
 cd discord-file-scraper
 dotnet run
-cd ..
+cd ../..
 
 $source = "tools/discord-file-scraper/onnx"
 $destination = "models"
@@ -21,7 +21,5 @@ Get-ChildItem -Path $source -File | ForEach-Object {
 if ($commit -and $newFiles) {
     git add $destination
     git commit -m "chore(models): re-scrape models"
-    git pull
-    git push
-    Write-Host "[*] Pushed new models to repo"
+    Write-Host "[*] Commited new models to repo"
 }
