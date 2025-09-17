@@ -18,6 +18,7 @@ class Program
     static readonly string[] acceptedExtensions = { "onnx", "pt", "cfg" };
     static List<AttatchmentInfo> messages = new List<AttatchmentInfo>();
     static List<FileInfo> fileInfos = new List<FileInfo>();
+    static long lastMetadataTimestamp = 0;
     static Dictionary<string, string> knownOriginals = new Dictionary<string, string>
     {
         { "8C33ECC90221267FCD6FB7DF7295841F4BFB061F3E3208344AB7E80C998AD40B", "Themida Arsenal (4k).onnx" },
@@ -25,6 +26,10 @@ class Program
         { "46A7FC44BFE047E3078ED924DA5D7BEDC23561D5754690CB30B8E54416EA7172", "AIOv7.onnx"},
         { "6E602D7B48CE6C701BD83417397AEA55C329E25C0951107EBD22885DFF3B07C2", "AIOv11.onnx"}
     };
+    // static Dictionary<string, string> skipFiles = new Dictionary<string, string>
+    // {
+    //     //{ "SHA256HASH", "FILENAME" },
+    // }; // incase someone requests their model to be skipped
 
     static async Task Main(string[] args)
     {
@@ -35,6 +40,7 @@ class Program
         bool skipDownload = false;
         bool cliOnly = false;
         bool deleteOld = false;
+        bool skipOld = false;
         int offset = 0;
         DateTime start = DateTime.UtcNow;
 
@@ -45,8 +51,14 @@ class Program
         checkDuplicates = (Environment.GetEnvironmentVariable("CHECK_DUPLICATES") ?? "false").ToLowerInvariant() == "true";
         skipDownload = (Environment.GetEnvironmentVariable("SKIP_DOWNLOAD") ?? "false").ToLowerInvariant() == "true";
         deleteOld = (Environment.GetEnvironmentVariable("DELETE_OLD") ?? "false").ToLowerInvariant() == "true";
+        skipOld = (Environment.GetEnvironmentVariable("SKIP_OLD") ?? "false").ToLowerInvariant() == "true";
         if (!string.IsNullOrWhiteSpace(token) && !string.IsNullOrWhiteSpace(guildId) && !string.IsNullOrWhiteSpace(channelId))
             cliOnly = true;
+        if (deleteOld && skipOld)
+        {
+            Console.WriteLine("[!] Cannot use both DELETE_OLD and SKIP_OLD options together.");
+            return;
+        }
 
 
         if (args.Length == 0 && !cliOnly)
@@ -60,7 +72,7 @@ class Program
 
             if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(guildId) || string.IsNullOrWhiteSpace(channelId))
             {
-                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download]");
+                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download] [--delete-old] [--skip-old]");
                 return;
             }
         }
@@ -96,6 +108,9 @@ class Program
                         case "delete-old":
                             deleteOld = true;
                             break;
+                        case "skip-old":
+                            skipOld = true;
+                            break;
                     }
                     cliOnly = true;
                 }
@@ -113,6 +128,8 @@ class Program
             Console.WriteLine($"[*] Using channel ID: {channelId}");
             Console.WriteLine($"[*] Check duplicates: {checkDuplicates}");
             Console.WriteLine($"[*] Skip download: {skipDownload}");
+            Console.WriteLine($"[*] Delete old files: {deleteOld}");
+            Console.WriteLine($"[*] Skip old files: {skipOld}");
         }
 
         if (deleteOld)
@@ -158,6 +175,19 @@ class Program
                     {
                         Console.WriteLine("[!] No messages found in the response.");
                         break;
+                    }
+
+                    if (skipOld && lastMetadataTimestamp > 0)
+                    {
+                        var oldestMessageArray = JArray.Parse(messages.Last.ToString());
+                        var oldestMessage = oldestMessageArray[0];
+                        DateTime oldestTimestamp = oldestMessage["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow;
+                        long oldestUnix = ((DateTimeOffset)oldestTimestamp).ToUnixTimeSeconds();
+                        if (oldestUnix <= lastMetadataTimestamp)
+                        {
+                            Console.WriteLine("[*] Reached messages older than the latest metadata timestamp. Stopping download.");
+                            break;
+                        }
                     }
 
                     await ProcessMessagesAsync(messages);
@@ -276,7 +306,7 @@ class Program
                 string filePath = Path.Combine(extension, filename);
                 byte[] hashBytes = SHA256Bytes(file);
                 string hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
-                
+
                 if (filename.StartsWith("best", StringComparison.OrdinalIgnoreCase))
                     return;
                 if (File.Exists(filePath))
@@ -335,15 +365,18 @@ class Program
                 var fileInfo = new FileInfo(attatchmentInfo.OriginalFilename, hashBytes, attatchmentInfo.UNIXTimestamp);
 
                 messages.Add(attatchmentInfo);
-                fileInfos.Add(fileInfo);
                 Console.WriteLine($"[+] Downloaded: {filePath} by {username} created at {timestamp}");
 
                 await File.WriteAllBytesAsync(filePath, file);
                 File.SetCreationTimeUtc(filePath, timestamp);
                 File.SetLastWriteTimeUtc(filePath, timestamp);
                 File.SetLastAccessTimeUtc(filePath, timestamp);
+
                 if (!FileInfo.FileInfoInList(fileInfos, fileInfo))
+                {
                     await FileInfo.AppendFileInfoAsync("metadata.dat", fileInfo);
+                    fileInfos.Add(fileInfo);
+                }
             }
         }
         catch (Exception ex)
@@ -585,7 +618,9 @@ class Program
                 return;
 
             fileInfos = FileInfo.LoadFileInfosAsync("metadata.dat").Result;
+            lastMetadataTimestamp = FileInfo.GetLatestTimestamp(fileInfos);
             Console.WriteLine($"[*] Loaded {fileInfos.Count} file metadata entries.");
+            Console.WriteLine($"[*] Latest metadata timestamp: {lastMetadataTimestamp}");
             return;
         }
         foreach (var extension in acceptedExtensions)
@@ -604,8 +639,10 @@ class Program
         }
 
         fileInfos = FileInfo.LoadFileInfosAsync("metadata.dat").Result;
+        lastMetadataTimestamp = FileInfo.GetLatestTimestamp(fileInfos);
         Console.WriteLine($"[*] Loaded {fileInfos.Count} file metadata entries.");
         Console.WriteLine($"[*] Loaded {messages.Count} files for processing.");
+        Console.WriteLine($"[*] Latest metadata timestamp: {lastMetadataTimestamp}");
     }
 
     static void LoadFilesFromDirectory(string directory, string extension)
@@ -801,6 +838,13 @@ public sealed class FileInfo
         return list.Any(f => f.FileName == fileInfo.FileName &&
                             f.Timestamp == fileInfo.Timestamp &&
                             f.SHA256Hash.SequenceEqual(fileInfo.SHA256Hash));
+    }
+
+    public static long GetLatestTimestamp(List<FileInfo> list)
+    {
+        if (list == null || list.Count == 0)
+            return 0;
+        return list.Max(f => f.Timestamp);
     }
 }
 
