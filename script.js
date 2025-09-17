@@ -196,6 +196,12 @@ function search() {
     let search = document.getElementById("search").value.trim().toLowerCase();
     let filteredFiles = files;
 
+    if (search) {
+        window.location.hash = encodeURIComponent(search);
+    } else {
+        history.replaceState(null, null, ' ');
+    }
+
     const filters = [
         {
             test: /!unique/,
