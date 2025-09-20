@@ -187,9 +187,9 @@ function addFileToDOM(model) {
     document.getElementById("files").appendChild(fileElement);
 }
 
-function updateFileCount() {
+function updateFileCount(count = files.length) {
     const typeLabel = currentType.charAt(0).toUpperCase() + currentType.slice(1);
-    document.getElementById("count").innerHTML = `${files.length} ${typeLabel}`;
+    document.getElementById("count").innerHTML = `${count} ${typeLabel}`;
 }
 
 function search() {
@@ -212,7 +212,10 @@ function search() {
         },
         {
             test: /sort:size/,
-            apply: (files) => files.slice().sort((a, b) => a.size - b.size),
+            apply: (files) => {
+                sortApplied = true;
+                return files.slice().sort((a, b) => a.size - b.size);
+            },
             clean: (s) => s.replace("sort:size", "").trim()
         },
         {
@@ -376,12 +379,12 @@ function search() {
 
     document.getElementById("files").innerHTML = "";
     if (!sortApplied) {
-    filteredFiles.sort((a, b) => a.name.localeCompare(b.name));
+        filteredFiles.sort((a, b) => a.name.localeCompare(b.name));
     }
     filteredFiles.forEach(file => {
         addFileToDOM(file);
     });
-    updateFileCount();
+    updateFileCount(filteredFiles.length);
 }
 
 function showContextMenu(e) {
