@@ -1467,7 +1467,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-09-12T22:22:02Z",
+    "Created": "2025-09-17T02:05:17Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -1928,6 +1928,23 @@
     "Description": "Ultralytics best model trained on CustomCharacterPath.yml",
     "Created": "2023-11-27T18:48:39.852513",
     "Version": "8.0.209",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": null
+  },
+  {
+    "Hash": "504f0bb3a3e539038514179b8d7ab9e8e243184b",
+    "FileName": "dahood_~~Dh1r.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 https://ultralytics.com/license",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2023-11-27T15:59:08.571797",
+    "Version": "8.0.219",
     "ModelType": "detect",
     "Labels": "{0: 'Enemy'}",
     "ImageSize": [
@@ -2890,13 +2907,13 @@
     "Args": null
   },
   {
-    "Hash": "bb89d5db2b9737884707216394a66d790505908a",
-    "FileName": "RVL.onnx",
+    "Hash": "d0f0e94856cbf22bd40953a067d2bd13694d4007",
+    "FileName": "FortBlox_~~xVnE.onnx",
     "Author": "Ultralytics",
     "License": "AGPL-3.0 https://ultralytics.com/license",
-    "Description": "Ultralytics best model trained on CustomCharacterPath.yaml",
-    "Created": "2024-07-30T22:55:50.971619",
-    "Version": "8.1.6",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2023-12-15T11:54:04.410208",
+    "Version": "8.0.227",
     "ModelType": "detect",
     "Labels": "{0: 'Enemy'}",
     "ImageSize": [
@@ -2907,13 +2924,13 @@
     "Args": null
   },
   {
-    "Hash": "d0f0e94856cbf22bd40953a067d2bd13694d4007",
-    "FileName": "FortBlox_~~yzL7.onnx",
+    "Hash": "bb89d5db2b9737884707216394a66d790505908a",
+    "FileName": "RVL.onnx",
     "Author": "Ultralytics",
     "License": "AGPL-3.0 https://ultralytics.com/license",
-    "Description": "Ultralytics best model trained on data.yaml",
-    "Created": "2023-12-15T11:54:04.410208",
-    "Version": "8.0.227",
+    "Description": "Ultralytics best model trained on CustomCharacterPath.yaml",
+    "Created": "2024-07-30T22:55:50.971619",
+    "Version": "8.1.6",
     "ModelType": "detect",
     "Labels": "{0: 'Enemy'}",
     "ImageSize": [
@@ -3264,6 +3281,23 @@
     "Args": null
   },
   {
+    "Hash": "d35db5128b14ef570ab9d9dd0025911dea8f055a",
+    "FileName": "TF2-by-GoodKnight_~~HDid.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2025-09-09T17:15:10.262811",
+    "Version": "8.3.189",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "2a348dc86889ec9ad9d30dc611323493f0318fb5",
     "FileName": "BADBIS-madebysaint.onnx",
     "Author": "Ultralytics",
@@ -3424,23 +3458,6 @@
     "Description": "Ultralytics YOLO11n model trained on data.yaml",
     "Created": "2025-06-16T19:02:26.485329",
     "Version": "8.3.155",
-    "ModelType": "detect",
-    "Labels": "{0: 'Enemy'}",
-    "ImageSize": [
-      640,
-      640
-    ],
-    "BatchSize": 1,
-    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
-  },
-  {
-    "Hash": "d35db5128b14ef570ab9d9dd0025911dea8f055a",
-    "FileName": "TF2-by-GoodKnight_~~8MkW.onnx",
-    "Author": "Ultralytics",
-    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
-    "Description": "Ultralytics best model trained on data.yaml",
-    "Created": "2025-09-09T17:15:10.262811",
-    "Version": "8.3.189",
     "ModelType": "detect",
     "Labels": "{0: 'Enemy'}",
     "ImageSize": [
@@ -3747,23 +3764,6 @@
     "Description": "Ultralytics best model trained on data.yaml",
     "Created": "2023-11-27T05:10:32.406717",
     "Version": "8.0.217",
-    "ModelType": "detect",
-    "Labels": "{0: 'Enemy'}",
-    "ImageSize": [
-      640,
-      640
-    ],
-    "BatchSize": 1,
-    "Args": null
-  },
-  {
-    "Hash": "504f0bb3a3e539038514179b8d7ab9e8e243184b",
-    "FileName": "Da Hood by Luna and TomerGamerTV.onnx",
-    "Author": "Ultralytics",
-    "License": "AGPL-3.0 https://ultralytics.com/license",
-    "Description": "Ultralytics best model trained on data.yaml",
-    "Created": "2023-11-27T15:59:08.571797",
-    "Version": "8.0.219",
     "ModelType": "detect",
     "Labels": "{0: 'Enemy'}",
     "ImageSize": [
@@ -4316,6 +4316,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "d5b87dda851f6feca2a1f390c15920e3045f4679",
+    "FileName": "Destiny-2-by-GoodKnight.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2025-09-16T09:15:43.532828",
+    "Version": "8.3.189",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "ecf409d7b41027508efa9340ac347f6dd10c88b7",
