@@ -202,6 +202,8 @@ function search() {
         history.replaceState(null, null, ' ');
     }
 
+    let sortApplied = false;
+
     const filters = [
         {
             test: /!unique/,
@@ -215,7 +217,10 @@ function search() {
         },
         {
             test: /sort:-size/,
-            apply: (files) => files.slice().sort((a, b) => b.size - a.size),
+            apply: (files) => {
+                sortApplied = true;
+                return files.slice().sort((a, b) => b.size - a.size);
+            },
             clean: (s) => s.replace("sort:-size", "").trim()
         },
         {
@@ -370,7 +375,9 @@ function search() {
     }
 
     document.getElementById("files").innerHTML = "";
+    if (!sortApplied) {
     filteredFiles.sort((a, b) => a.name.localeCompare(b.name));
+    }
     filteredFiles.forEach(file => {
         addFileToDOM(file);
     });
