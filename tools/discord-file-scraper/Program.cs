@@ -818,9 +818,7 @@ public sealed class FileInfo
             var fileInfo = FromBytes(entryData);
             fileInfos.Add(fileInfo);
             index += entryData.Length;
-            Console.WriteLine($"    Loaded metadata: {fileInfo.FileName}, Timestamp: {fileInfo.Timestamp}");
         }
-        // print
         return fileInfos;
     }
 
