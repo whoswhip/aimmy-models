@@ -343,7 +343,7 @@ class Program
                     {
                         string nameWithoutExt = Path.GetFileNameWithoutExtension(filename);
                         string ext = Path.GetExtension(filename);
-                        string duplicateFilePath = Path.Combine(extension, $"{nameWithoutExt}_~~{GenerateString(4)}{ext}");
+                        string duplicateFilePath = Path.Combine(extension, $"{nameWithoutExt}_~~{hash.Substring(0, 4)}{ext}");
                         filePath = duplicateFilePath;
                         Console.WriteLine($"[~] File with same name but different content exists, saving as: {filePath}");
                     }
@@ -818,7 +818,9 @@ public sealed class FileInfo
             var fileInfo = FromBytes(entryData);
             fileInfos.Add(fileInfo);
             index += entryData.Length;
+            Console.WriteLine($"    Loaded metadata: {fileInfo.FileName}, Timestamp: {fileInfo.Timestamp}");
         }
+        // print
         return fileInfos;
     }
 
