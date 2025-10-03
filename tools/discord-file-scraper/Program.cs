@@ -20,7 +20,6 @@ class Program
     static List<FileInfo> fileInfos = new List<FileInfo>();
     static long lastMetadataTimestamp = 0;
     static long GlobalGuildId = 0;
-    static long GlobalChannelId = 0;
     static Dictionary<string, string> knownOriginals = new Dictionary<string, string>
     {
         { "8C33ECC90221267FCD6FB7DF7295841F4BFB061F3E3208344AB7E80C998AD40B", "Themida Arsenal (4k).onnx" },
@@ -135,7 +134,6 @@ class Program
         }
 
         GlobalGuildId = long.Parse(guildId);
-        GlobalChannelId = long.Parse(channelId);
 
         if (deleteOld)
         {
@@ -285,13 +283,13 @@ class Program
                 if (string.IsNullOrWhiteSpace(extension) || !acceptedExtensions.Contains(extension))
                     continue;
 
-                await DownloadAsync(url, extension, attachment, message["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow, message["author"], message["id"]?.Value<long>());
+                await DownloadAsync(url, extension, attachment, message["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow, message["author"], message["channel_id"]?.Value<long>(), message["id"]?.Value<long>());
                 await Task.Delay(10);
             }
         }
     }
 
-    static async Task DownloadAsync(string url, string extension, JToken attachment, DateTime timestamp, JToken? author, long? messageId)
+    static async Task DownloadAsync(string url, string extension, JToken attachment, DateTime timestamp, JToken? author, long? channelId, long? messageId)
     {
         try
         {
@@ -365,7 +363,7 @@ class Program
                     Hash = hash
                 };
 
-                var fileInfo = new FileInfo(attatchmentInfo.OriginalFilename, hashBytes, attatchmentInfo.UNIXTimestamp, GlobalGuildId, GlobalChannelId, messageId ?? 0);
+                var fileInfo = new FileInfo(attatchmentInfo.OriginalFilename, hashBytes, attatchmentInfo.UNIXTimestamp, GlobalGuildId, channelId ?? 0, messageId ?? 0);
 
                 messages.Add(attatchmentInfo);
                 Console.WriteLine($"[+] Downloaded: {filePath} by {author?["username"]?.Value<string>() ?? "unknown"} created at {timestamp}");
