@@ -1105,6 +1105,23 @@
     "Args": null
   },
   {
+    "Hash": "cac89bdfcff72afa8a18df010fabed108b220afa",
+    "FileName": "Valorant[RED].onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-06-08T15:32:14.742189",
+    "Version": "8.3.84",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "88247a13125fb822a8546b92235bdf2c9d1bdef4",
     "FileName": "TotallyAccurateBattlegrounds.onnx",
     "Author": "Ultralytics",
@@ -1620,7 +1637,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-10-02T07:26:57Z",
+    "Created": "2025-10-02T07:32:27Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -2446,6 +2463,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "09f85a8639474c7fc0745b4d9851d01e20c7af2d",
+    "FileName": "BO6-Icon-Indicator_v3[PURPLE].onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-06-15T21:52:44.332454",
+    "Version": "8.3.84",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "9107ca5cb4809008492b5ac6298882a3ed068c1c",
@@ -3381,6 +3415,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "ef8d3cab7cb3ecf291f5a8d5d418b68414d0f3a8",
+    "FileName": "BO6-Icon-Indicator_v2[RED].onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-06-15T21:57:19.989291",
+    "Version": "8.3.84",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "b55128e4c5c3afc580bd1ed8fc2b0d5e6af39ddc",
