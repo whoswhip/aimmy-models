@@ -5,7 +5,7 @@ class Program
     class AttatchmentInfo
     {
         public required string AttatchmentURL { get; set; }
-        public string? AuthorID { get; set; }
+        public long? AuthorID { get; set; }
         public string? Username { get; set; }
         public required DateTime Timestamp { get; set; }
         public required long UNIXTimestamp { get; set; }
@@ -19,6 +19,8 @@ class Program
     static List<AttatchmentInfo> messages = new List<AttatchmentInfo>();
     static List<FileInfo> fileInfos = new List<FileInfo>();
     static long lastMetadataTimestamp = 0;
+    static long GlobalGuildId = 0;
+    static long GlobalChannelId = 0;
     static Dictionary<string, string> knownOriginals = new Dictionary<string, string>
     {
         { "8C33ECC90221267FCD6FB7DF7295841F4BFB061F3E3208344AB7E80C998AD40B", "Themida Arsenal (4k).onnx" },
@@ -132,6 +134,9 @@ class Program
             Console.WriteLine($"[*] Skip old files: {skipOld}");
         }
 
+        GlobalGuildId = long.Parse(guildId);
+        GlobalChannelId = long.Parse(channelId);
+
         if (deleteOld)
         {
             Console.WriteLine("[*] Deleting old files...");
@@ -179,9 +184,9 @@ class Program
 
                     if (skipOld && lastMetadataTimestamp > 0)
                     {
-                        var oldestMessageArray = JArray.Parse(messages.Last.ToString());
+                        var oldestMessageArray = JArray.Parse(messages.Last?.ToString() ?? "");
                         var oldestMessage = oldestMessageArray[0];
-                        DateTime oldestTimestamp = oldestMessage["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow;
+                        DateTime oldestTimestamp = oldestMessage?["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow;
                         long oldestUnix = ((DateTimeOffset)oldestTimestamp).ToUnixTimeSeconds();
                         if (oldestUnix <= lastMetadataTimestamp)
                         {
@@ -280,16 +285,13 @@ class Program
                 if (string.IsNullOrWhiteSpace(extension) || !acceptedExtensions.Contains(extension))
                     continue;
 
-                string? authorId = message["author"]?["id"]?.Value<string>();
-                string? username = message["author"]?["username"]?.Value<string>();
-
-                await DownloadAsync(url, extension, attachment, message["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow, authorId, username);
+                await DownloadAsync(url, extension, attachment, message["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow, message["author"], message["id"]?.Value<long>());
                 await Task.Delay(10);
             }
         }
     }
 
-    static async Task DownloadAsync(string url, string extension, JToken attachment, DateTime timestamp, string? authorId, string? username)
+    static async Task DownloadAsync(string url, string extension, JToken attachment, DateTime timestamp, JToken? author, long? messageId)
     {
         try
         {
@@ -352,8 +354,8 @@ class Program
                 var attatchmentInfo = new AttatchmentInfo
                 {
                     AttatchmentURL = url,
-                    AuthorID = authorId,
-                    Username = username,
+                    AuthorID = author?["id"]?.Value<long>() ?? 0,
+                    Username = author?["username"]?.Value<string>() ?? "unknown",
                     Timestamp = timestamp,
                     UNIXTimestamp = ((DateTimeOffset)timestamp).ToUnixTimeSeconds(),
                     OriginalFilename = !string.IsNullOrWhiteSpace(attachment["title"]?.Value<string>())
@@ -362,10 +364,11 @@ class Program
                     Path = filePath,
                     Hash = hash
                 };
-                var fileInfo = new FileInfo(attatchmentInfo.OriginalFilename, hashBytes, attatchmentInfo.UNIXTimestamp);
+
+                var fileInfo = new FileInfo(attatchmentInfo.OriginalFilename, hashBytes, attatchmentInfo.UNIXTimestamp, GlobalGuildId, GlobalChannelId, messageId ?? 0);
 
                 messages.Add(attatchmentInfo);
-                Console.WriteLine($"[+] Downloaded: {filePath} by {username} created at {timestamp}");
+                Console.WriteLine($"[+] Downloaded: {filePath} by {author?["username"]?.Value<string>() ?? "unknown"} created at {timestamp}");
 
                 await File.WriteAllBytesAsync(filePath, file);
                 File.SetCreationTimeUtc(filePath, timestamp);
@@ -749,16 +752,23 @@ public sealed class FileInfo
 {
     private const int SHA256Length = 32;
     private const int TimestampLength = 8;
+    private const int LongLength = 8;
+    private const byte HasMetadataFlag = 0x01;
 
     public string FileName { get; }
     public byte[] SHA256Hash { get; }
     public long Timestamp { get; }
+    public bool MessageMetadata { get; set; } = false;
+    public long ServerID { get; set; } = 0;
+    public long ChannelID { get; set; } = 0;
+    public long MessageID { get; set; } = 0;
 
     public FileInfo(string filename, byte[] hash, long timestamp)
     {
         if (filename is null) throw new ArgumentNullException(nameof(filename));
         if (hash is null) throw new ArgumentNullException(nameof(hash));
         if (hash.Length != SHA256Length) throw new ArgumentException($"Hash must be {SHA256Length} bytes long.", nameof(hash));
+
 
         byte[] name = System.Text.Encoding.UTF8.GetBytes(filename);
         if (name.Length > byte.MaxValue) throw new ArgumentException($"Filename must be less than {byte.MaxValue} bytes long.", nameof(filename));
@@ -768,16 +778,44 @@ public sealed class FileInfo
         Timestamp = timestamp;
     }
 
+    public FileInfo(string filename, byte[] hash, long timestamp, long serverID, long channelID, long messageID)
+        : this(filename, hash, timestamp)
+    {
+        MessageMetadata = true;
+        ServerID = serverID;
+        ChannelID = channelID;
+        MessageID = messageID;
+    }
+
     public byte[] ToBytes()
     {
         byte[] name = System.Text.Encoding.UTF8.GetBytes(FileName);
         if (name.Length > byte.MaxValue) throw new InvalidOperationException($"Filename must be less than {byte.MaxValue} bytes long.");
 
-        using var ms = new MemoryStream(1 + name.Length + SHA256Length + TimestampLength);
+        int baseSize = 1 + name.Length + SHA256Length + TimestampLength;
+        int totalSize = baseSize + 1;
+        if (MessageMetadata)
+        {
+            totalSize += LongLength * 3;
+        }
+
+        using var ms = new MemoryStream(totalSize);
+
         ms.WriteByte((byte)name.Length);
         ms.Write(name, 0, name.Length);
         ms.Write(SHA256Hash, 0, SHA256Hash.Length);
         ms.Write(BitConverter.GetBytes(Timestamp), 0, TimestampLength);
+
+        byte flags = MessageMetadata ? HasMetadataFlag : (byte)0;
+        ms.WriteByte(flags);
+
+        if (MessageMetadata)
+        {
+            ms.Write(BitConverter.GetBytes(ServerID), 0, LongLength);
+            ms.Write(BitConverter.GetBytes(ChannelID), 0, LongLength);
+            ms.Write(BitConverter.GetBytes(MessageID), 0, LongLength);
+        }
+
         return ms.ToArray();
     }
 
@@ -785,18 +823,52 @@ public sealed class FileInfo
     {
         if (data is null) throw new ArgumentNullException(nameof(data));
         if (data.Length < 1 + SHA256Length + TimestampLength) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
+
         using var ms = new MemoryStream(data);
         int nameLength = ms.ReadByte();
         if (nameLength < 0) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
         if (ms.Length < 1 + nameLength + SHA256Length + TimestampLength) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
+
         byte[] name = new byte[nameLength];
         ms.Read(name, 0, nameLength);
+
         byte[] hash = new byte[SHA256Length];
         ms.Read(hash, 0, SHA256Length);
+
         byte[] timestampBytes = new byte[TimestampLength];
         ms.Read(timestampBytes, 0, TimestampLength);
         long timestamp = BitConverter.ToInt64(timestampBytes, 0);
-        return new FileInfo(System.Text.Encoding.UTF8.GetString(name), hash, timestamp);
+
+        var fileInfo = new FileInfo(System.Text.Encoding.UTF8.GetString(name), hash, timestamp);
+
+        if (ms.Position < ms.Length)
+        {
+            int flagsByte = ms.ReadByte();
+            if (flagsByte >= 0 && (flagsByte & HasMetadataFlag) != 0)
+            {
+                if (ms.Position + LongLength * 3 <= ms.Length)
+                {
+                    byte[] serverIDBytes = new byte[LongLength];
+                    ms.Read(serverIDBytes, 0, LongLength);
+                    long serverID = BitConverter.ToInt64(serverIDBytes, 0);
+
+                    byte[] channelIDBytes = new byte[LongLength];
+                    ms.Read(channelIDBytes, 0, LongLength);
+                    long channelID = BitConverter.ToInt64(channelIDBytes, 0);
+
+                    byte[] messageIDBytes = new byte[LongLength];
+                    ms.Read(messageIDBytes, 0, LongLength);
+                    long messageID = BitConverter.ToInt64(messageIDBytes, 0);
+
+                    fileInfo.MessageMetadata = true;
+                    fileInfo.ServerID = serverID;
+                    fileInfo.ChannelID = channelID;
+                    fileInfo.MessageID = messageID;
+                }
+            }
+        }
+
+        return fileInfo;
     }
 
     public static async Task<List<FileInfo>> LoadFileInfosAsync(string filePath)
@@ -809,11 +881,29 @@ public sealed class FileInfo
         int index = 0;
         while (index < data.Length)
         {
+            if (index >= data.Length) break;
+
             int nameLength = data[index];
             if (nameLength <= 0 || index + 1 + nameLength + SHA256Length + TimestampLength > data.Length)
                 break;
 
-            byte[] entryData = new byte[1 + nameLength + SHA256Length + TimestampLength];
+            int minSize = 1 + nameLength + SHA256Length + TimestampLength;
+
+            int entrySize = minSize;
+            if (index + minSize < data.Length)
+            {
+                entrySize++;
+                byte flags = data[index + minSize];
+                if ((flags & HasMetadataFlag) != 0)
+                {
+                    entrySize += LongLength * 3;
+                }
+            }
+
+            if (index + entrySize > data.Length)
+                entrySize = minSize;
+
+            byte[] entryData = new byte[entrySize];
             Array.Copy(data, index, entryData, 0, entryData.Length);
             var fileInfo = FromBytes(entryData);
             fileInfos.Add(fileInfo);
