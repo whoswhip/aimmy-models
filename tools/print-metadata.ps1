@@ -13,7 +13,7 @@ function Parse-FileInfos {
 
     while ($index -lt $Data.Length) {
         $nameLength = $Data[$index]
-        if ($nameLength -le 0 -or ($index + 1 + $nameLength + 32 + 8) -gt $Data.Length) {
+        if ($nameLength -le 0 -or ($index + 1 + $nameLength + 20 + 8) -gt $Data.Length) {
             break
         }
 
@@ -23,14 +23,14 @@ function Parse-FileInfos {
         $fileName = [System.Text.Encoding]::UTF8.GetString($nameBytes)
 
         $hashStart = $index + 1 + $nameLength
-        $hash = $Data[$hashStart..($hashStart + 31)]
+        $hash = $Data[$hashStart..($hashStart + 19)]
 
-        $timestampStart = $hashStart + 32
+        $timestampStart = $hashStart + 20
         $timestampBytes = $Data[$timestampStart..($timestampStart + 7)]
         $timestamp = [BitConverter]::ToInt64($timestampBytes, 0)
 
         $entry | Add-Member NoteProperty FileName   $fileName
-        $entry | Add-Member NoteProperty SHA256Hash (($hash | ForEach-Object ToString X2) -join "")
+        $entry | Add-Member NoteProperty SHA1Hash (($hash | ForEach-Object ToString X2) -join "")
         $entry | Add-Member NoteProperty Timestamp  $timestamp
         $entry | Add-Member NoteProperty DateTime   ([DateTimeOffset]::FromUnixTimeSeconds($timestamp).UtcDateTime)
 
@@ -74,7 +74,7 @@ function Parse-FileInfos {
 
         $results += $entry
 
-        $entrySize = 1 + $nameLength + 32 + 8
+        $entrySize = 1 + $nameLength + 20 + 8
         if ($flagsIndex -lt $Data.Length) {
             $entrySize += 1
             if (($Data[$flagsIndex] -band 0x01) -ne 0) {
@@ -98,5 +98,5 @@ $infos = Parse-FileInfos -Data $data
 if ($infos.Count -eq 0) {
     Write-Host "No valid FileInfo entries found."
 } else {
-    $infos | Format-Table FileName, SHA256Hash, Timestamp, DateTime, MessageMetadata, ServerID, ChannelID, MessageID -AutoSize
+    $infos | Format-Table FileName, SHA1Hash, Timestamp, DateTime, MessageMetadata, ServerID, ChannelID, MessageID -AutoSize
 }

@@ -22,14 +22,14 @@ class Program
     static long GlobalGuildId = 0;
     static Dictionary<string, string> knownOriginals = new Dictionary<string, string>
     {
-        { "8C33ECC90221267FCD6FB7DF7295841F4BFB061F3E3208344AB7E80C998AD40B", "Themida Arsenal (4k).onnx" },
-        { "6E814BA61CE5A8CDBEBEB95F28B98DE562761A2F24A559A7A4EA417DDEB0A4E6", "Universal Hamsta v3.onnx"},
-        { "46A7FC44BFE047E3078ED924DA5D7BEDC23561D5754690CB30B8E54416EA7172", "AIOv7.onnx"},
-        { "6E602D7B48CE6C701BD83417397AEA55C329E25C0951107EBD22885DFF3B07C2", "AIOv11.onnx"}
+        { "1de5eef8c7275385cdc954c705eb2a9832190555", "Themida Arsenal (4k).onnx" },
+        { "68c4945d14148c61d1fbe493085d2f866190c837", "Universal Hamsta v3.onnx"},
+        { "f91d8a7499f3a7ab2d7e3418d515a28e610d1322", "AIOv7.onnx"},
+        { "bfceaa0f9072f09d80bee1c40a06bad17012bf99", "AIOv11.onnx"}
     };
     // static Dictionary<string, string> skipFiles = new Dictionary<string, string>
     // {
-    //     //{ "SHA256HASH", "FILENAME" },
+    //     //{ "GIT BLOB SHA", "FILENAME" },
     // }; // incase someone requests their model to be skipped
 
     static async Task Main(string[] args)
@@ -73,7 +73,7 @@ class Program
 
             if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(guildId) || string.IsNullOrWhiteSpace(channelId))
             {
-                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download] [--delete-old] [--skip-old]");
+                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download] [--delete-old] [--skip-old] [-git-hash]");
                 return;
             }
         }
@@ -91,6 +91,19 @@ class Program
                     }
                     switch (option)
                     {
+                        case "git-hash":
+                            string filePath = (value ?? "").Replace(@"""", "");
+                            if (File.Exists(filePath))
+                            {
+                                byte[] fileBytes = File.ReadAllBytes(filePath);
+                                string hash = SHA(fileBytes);
+                                Console.WriteLine(hash);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[!] File does not exist: {filePath}");
+                            }
+                            return;
                         case "token":
                             token = value;
                             break;
@@ -118,7 +131,7 @@ class Program
             }
             if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(guildId) || string.IsNullOrWhiteSpace(channelId))
             {
-                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download]");
+                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download] [--delete-old] [--skip-old] [--git-hash]");
                 return;
             }
         }
@@ -304,7 +317,7 @@ class Program
                 byte[] file = await response.Content.ReadAsByteArrayAsync();
                 string filename = !string.IsNullOrWhiteSpace(attachment["title"]?.Value<string>()) ? $"{attachment["title"]?.Value<string>()}.{extension}" : attachment["filename"]?.Value<string>() ?? $"{GenerateString(8)}.{extension}";
                 string filePath = Path.Combine(extension, filename);
-                byte[] hashBytes = SHA256Bytes(file);
+                byte[] hashBytes = SHABytes(file);
                 string hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
 
                 if (filename.StartsWith("best", StringComparison.OrdinalIgnoreCase))
@@ -312,7 +325,7 @@ class Program
                 if (File.Exists(filePath))
                 {
                     DateTime existingFileTime = File.GetLastWriteTimeUtc(filePath);
-                    string existingFileHash = SHA256(await File.ReadAllBytesAsync(filePath));
+                    string existingFileHash = SHA(await File.ReadAllBytesAsync(filePath));
 
                     if (existingFileHash == hash)
                     {
@@ -398,7 +411,7 @@ class Program
 
         foreach (var fi in fileInfos)
         {
-            string hashLower = BitConverter.ToString(fi.SHA256Hash).Replace("-", "").ToLowerInvariant();
+            string hashLower = BitConverter.ToString(fi.SHA1Hash).Replace("-", "").ToLowerInvariant();
             string key = hashLower + "::" + Path.GetFileName(fi.FileName);
             if (existingKeys.Contains(key))
                 continue;
@@ -655,7 +668,7 @@ class Program
             try
             {
                 byte[] fileBytes = File.ReadAllBytes(filePath);
-                string hash = SHA256(fileBytes);
+                string hash = SHA(fileBytes);
                 DateTime timestamp = File.GetLastWriteTimeUtc(filePath);
                 string filename = Path.GetFileName(filePath);
 
@@ -688,18 +701,21 @@ class Program
         return new string(Enumerable.Repeat(chars, length)
             .Select(s => s[random.Next(s.Length)]).ToArray());
     }
-    static string SHA256(byte[] file)
+    static string SHA(byte[] file)
     {
-        using (var sha256 = System.Security.Cryptography.SHA256.Create())
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes($"blob {file.Length}\0").Concat(file).ToArray();
+        using (var sha1 = System.Security.Cryptography.SHA1.Create())
         {
-            return BitConverter.ToString(sha256.ComputeHash(file)).Replace("-", "").ToLowerInvariant();
+            byte[] hashBytes = sha1.ComputeHash(bytes);
+            return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
         }
     }
-    static byte[] SHA256Bytes(byte[] file)
+    static byte[] SHABytes(byte[] file)
     {
-        using (var sha256 = System.Security.Cryptography.SHA256.Create())
+        byte[] bytes = System.Text.Encoding.UTF8.GetBytes($"blob {file.Length}\0").Concat(file).ToArray();
+        using (var sha1 = System.Security.Cryptography.SHA1.Create())
         {
-            return sha256.ComputeHash(file);
+            return sha1.ComputeHash(bytes);
         }
     }
 
@@ -748,13 +764,13 @@ class Program
 
 public sealed class FileInfo
 {
-    private const int SHA256Length = 32;
+    private const int SHA1Length = 20;
     private const int TimestampLength = 8;
     private const int LongLength = 8;
     private const byte HasMetadataFlag = 0x01;
 
     public string FileName { get; }
-    public byte[] SHA256Hash { get; }
+    public byte[] SHA1Hash { get; }
     public long Timestamp { get; }
     public bool MessageMetadata { get; set; } = false;
     public long ServerID { get; set; } = 0;
@@ -765,14 +781,14 @@ public sealed class FileInfo
     {
         if (filename is null) throw new ArgumentNullException(nameof(filename));
         if (hash is null) throw new ArgumentNullException(nameof(hash));
-        if (hash.Length != SHA256Length) throw new ArgumentException($"Hash must be {SHA256Length} bytes long.", nameof(hash));
+        if (hash.Length != SHA1Length) throw new ArgumentException($"Hash must be {SHA1Length} bytes long.", nameof(hash));
 
 
         byte[] name = System.Text.Encoding.UTF8.GetBytes(filename);
         if (name.Length > byte.MaxValue) throw new ArgumentException($"Filename must be less than {byte.MaxValue} bytes long.", nameof(filename));
 
         FileName = filename;
-        SHA256Hash = (byte[])hash.Clone();
+        SHA1Hash = (byte[])hash.Clone();
         Timestamp = timestamp;
     }
 
@@ -790,7 +806,7 @@ public sealed class FileInfo
         byte[] name = System.Text.Encoding.UTF8.GetBytes(FileName);
         if (name.Length > byte.MaxValue) throw new InvalidOperationException($"Filename must be less than {byte.MaxValue} bytes long.");
 
-        int baseSize = 1 + name.Length + SHA256Length + TimestampLength;
+        int baseSize = 1 + name.Length + SHA1Length + TimestampLength;
         int totalSize = baseSize + 1;
         if (MessageMetadata)
         {
@@ -801,7 +817,7 @@ public sealed class FileInfo
 
         ms.WriteByte((byte)name.Length);
         ms.Write(name, 0, name.Length);
-        ms.Write(SHA256Hash, 0, SHA256Hash.Length);
+        ms.Write(SHA1Hash, 0, SHA1Hash.Length);
         ms.Write(BitConverter.GetBytes(Timestamp), 0, TimestampLength);
 
         byte flags = MessageMetadata ? HasMetadataFlag : (byte)0;
@@ -820,18 +836,18 @@ public sealed class FileInfo
     public static FileInfo FromBytes(byte[] data)
     {
         if (data is null) throw new ArgumentNullException(nameof(data));
-        if (data.Length < 1 + SHA256Length + TimestampLength) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
+        if (data.Length < 1 + SHA1Length + TimestampLength) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
 
         using var ms = new MemoryStream(data);
         int nameLength = ms.ReadByte();
         if (nameLength < 0) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
-        if (ms.Length < 1 + nameLength + SHA256Length + TimestampLength) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
+        if (ms.Length < 1 + nameLength + SHA1Length + TimestampLength) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
 
         byte[] name = new byte[nameLength];
         ms.Read(name, 0, nameLength);
 
-        byte[] hash = new byte[SHA256Length];
-        ms.Read(hash, 0, SHA256Length);
+        byte[] hash = new byte[SHA1Length];
+        ms.Read(hash, 0, SHA1Length);
 
         byte[] timestampBytes = new byte[TimestampLength];
         ms.Read(timestampBytes, 0, TimestampLength);
@@ -882,10 +898,10 @@ public sealed class FileInfo
             if (index >= data.Length) break;
 
             int nameLength = data[index];
-            if (nameLength <= 0 || index + 1 + nameLength + SHA256Length + TimestampLength > data.Length)
+            if (nameLength <= 0 || index + 1 + nameLength + SHA1Length + TimestampLength > data.Length)
                 break;
 
-            int minSize = 1 + nameLength + SHA256Length + TimestampLength;
+            int minSize = 1 + nameLength + SHA1Length + TimestampLength;
 
             int entrySize = minSize;
             if (index + minSize < data.Length)
@@ -925,7 +941,7 @@ public sealed class FileInfo
     {
         return list.Any(f => f.FileName == fileInfo.FileName &&
                             f.Timestamp == fileInfo.Timestamp &&
-                            f.SHA256Hash.SequenceEqual(fileInfo.SHA256Hash));
+                            f.SHA1Hash.SequenceEqual(fileInfo.SHA1Hash));
     }
 
     public static long GetLatestTimestamp(List<FileInfo> list)
