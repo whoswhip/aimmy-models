@@ -195,11 +195,12 @@ class Program
 
                     if (skipOld && lastMetadataTimestamp > 0)
                     {
-                        var oldestMessageArray = JArray.Parse(messages.Last?.ToString() ?? "");
-                        var oldestMessage = oldestMessageArray[0];
-                        DateTime oldestTimestamp = oldestMessage?["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow;
-                        long oldestUnix = ((DateTimeOffset)oldestTimestamp).ToUnixTimeSeconds();
-                        if (oldestUnix <= lastMetadataTimestamp)
+                        var newestMessageArray = JArray.Parse(messages.Last?.ToString() ?? "");
+                        var newestMessage = newestMessageArray[0];
+                        Console.WriteLine($"[*] Newest message timestamp: {newestMessage?["timestamp"]?.Value<DateTime>()}");
+                        DateTime newestTimestamp = newestMessage?["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow;
+                        long newestUnix = ((DateTimeOffset)newestTimestamp).ToUnixTimeSeconds();
+                        if (newestUnix <= lastMetadataTimestamp)
                         {
                             Console.WriteLine("[*] Reached messages older than the latest metadata timestamp. Stopping download.");
                             break;
@@ -453,10 +454,10 @@ class Program
             var sortedFiles = group.OrderBy(f => f.Timestamp).ToList();
 
             string? knownOriginalName = null;
-            string hashUpper = group.Key.ToUpperInvariant();
-            if (knownOriginals.ContainsKey(hashUpper))
+            string hashLower = group.Key.ToLowerInvariant();
+            if (knownOriginals.ContainsKey(hashLower))
             {
-                knownOriginalName = knownOriginals[hashUpper];
+                knownOriginalName = knownOriginals[hashLower];
                 Console.WriteLine($"[*] Found known original for hash {group.Key.Substring(0, 8)}: {knownOriginalName}");
             }
 
