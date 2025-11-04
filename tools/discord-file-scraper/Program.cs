@@ -195,7 +195,26 @@ class Program
 
                     if (skipOld && lastMetadataTimestamp > 0)
                     {
-                        var newestMessageArray = JArray.Parse(messages.Last?.ToString() ?? "");
+                        var newestMessageArray = messages
+                            .Select(m => JArray.Parse(m.ToString())[0])
+                            .Where(m =>
+                            {
+                                var attachments = m["attachments"]?.ToObject<JArray>();
+                                if (attachments == null || attachments.Count == 0)
+                                    return false;
+                                foreach (var attachment in attachments)
+                                {
+                                    string? filename = attachment["filename"]?.Value<string>();
+                                    if (string.IsNullOrWhiteSpace(filename))
+                                        continue;
+                                    string? extension = filename.Split('.').LastOrDefault()?.ToLowerInvariant();
+                                    if (string.IsNullOrWhiteSpace(extension) || acceptedExtensions.Contains(extension))
+                                        return true;
+                                }
+                                return false;
+                            })
+                            .OrderByDescending(m => m["timestamp"]?.Value<DateTime>() ?? DateTime.MinValue)
+                            .ToArray();
                         var newestMessage = newestMessageArray[0];
                         Console.WriteLine($"[*] Newest message timestamp: {newestMessage?["timestamp"]?.Value<DateTime>()}");
                         DateTime newestTimestamp = newestMessage?["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow;
