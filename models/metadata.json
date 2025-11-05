@@ -646,6 +646,23 @@
     "Args": null
   },
   {
+    "Hash": "f5b50e529c49a36e4301e9e67742a5d2997ec374",
+    "FileName": "TF2_6K-by-GK.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics TF29.5K model trained on data.yaml",
+    "Created": "2025-11-03T15:05:08.087346",
+    "Version": "8.3.223",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "f6536343472a99651542e3ed6cb50174d0f05e07",
     "FileName": "Apex Legends by 5pr.onnx",
     "Author": "Ultralytics",
@@ -1688,7 +1705,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-10-09T13:24:57Z",
+    "Created": "2025-11-04T16:37:24Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -1853,6 +1870,23 @@
     "Args": null
   },
   {
+    "Hash": "b49363ff373b2f02ccdb0d1af674d5f40c611a66",
+    "FileName": "Minecraftv3.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2025-11-03T14:44:04.696273",
+    "Version": "8.3.223",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "5bc254830ac8240f18b2afd2b6955d0338a7bb29",
     "FileName": "RiotfallV1.onnx",
     "Author": "Ultralytics",
@@ -1987,6 +2021,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "372392d9cbd5dee2f6b16759517c298b8ec794ba",
+    "FileName": "bf6320.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on C:\\Users\\Maik\\Desktop\\train\\dataset\\data.yaml",
+    "Created": "2025-10-29T16:14:18.932889",
+    "Version": "8.3.158",
+    "ModelType": "detect",
+    "Labels": "{0: 'enemy'}",
+    "ImageSize": [
+      0,
+      0
+    ],
+    "BatchSize": 0,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': True, 'simplify': True, 'opset': 12, 'nms': False}"
   },
   {
     "Hash": "a866333f5b7a42a336c943adce7d4bfd80670e4e",
@@ -2185,6 +2236,23 @@
     "Version": "8.3.189",
     "ModelType": "detect",
     "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
+    "Hash": "6d458cef791f7e77ac34789c2b88523a9b6982b0",
+    "FileName": "Planetside2-by-GK.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2025-10-28T21:46:37.980351",
+    "Version": "8.3.189",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
     "ImageSize": [
       640,
       640
@@ -3534,6 +3602,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "eb007f1073d7200c7873329ec72843965cc6e77a",
+    "FileName": "TAB9k-by-Gk.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-11-03T14:57:24.118675",
+    "Version": "8.3.223",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "206d71b53a2c48fa37acad2d45ab7a840dd8537b",
