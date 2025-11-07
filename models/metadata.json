@@ -289,6 +289,23 @@
     "Args": null
   },
   {
+    "Hash": "3c8483671f1ac5ae790abc98afacf48e0bb6ffee",
+    "FileName": "GK's-AIOV1.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2025-11-06T23:09:38.569526",
+    "Version": "8.3.223",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "4c0744a79d7a58325c055a4109b9040bb9fdfec2",
     "FileName": "Big Paintball by Lucas (the better one) and SryFool.onnx",
     "Author": "Ultralytics",
@@ -1705,7 +1722,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-11-05T03:57:01Z",
+    "Created": "2025-11-07T06:42:11Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -1953,6 +1970,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "de73e6e961cec960ae6863ec6803bccc7ff62593",
+    "FileName": "Division2Icon.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-11-05T07:33:29.081798",
+    "Version": "8.3.223",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "97b604150864e8c201fa34d7a58a21bfdc1f49e4",
