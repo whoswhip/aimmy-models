@@ -1705,7 +1705,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-11-04T16:37:24Z",
+    "Created": "2025-11-05T03:57:01Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -2871,6 +2871,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "a3a33344239df6eb171299d1b3c132f7508a6a5e",
+    "FileName": "Division_2-by-GK.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2025-11-04T19:58:16.365833",
+    "Version": "8.3.223",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "840b7c2dab736ec9fb7278dda4bcf06aeead0da7",
