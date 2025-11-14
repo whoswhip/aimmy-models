@@ -697,6 +697,23 @@
     "Args": null
   },
   {
+    "Hash": "d5d48682dc85f473dbc3e57c7b9d1fb197ecef47",
+    "FileName": "BattleField2042-GK-V2.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-11-11T22:39:12.640875",
+    "Version": "8.3.223",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "5596ece4c5035d616abf19b40c9393ebf2ce0856",
     "FileName": "BadBusiness-Harlan-87k.onnx",
     "Author": "Ultralytics",
@@ -1722,7 +1739,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-11-07T06:42:11Z",
+    "Created": "2025-11-14T01:57:02Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -2992,6 +3009,23 @@
     "Args": null
   },
   {
+    "Hash": "6c1b380ac3f32772e6eeb4d533520da5c08e53e0",
+    "FileName": "GK's-AIOV2.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2025-11-09T08:02:16.964396",
+    "Version": "8.3.223",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "729f9b9a5473eafca3bc8c7944ab0786c41e1288",
     "FileName": "Delta Force by loli.onnx",
     "Author": "Ultralytics",
@@ -3466,6 +3500,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "13f193f79088c2f7bea57735b11e681c01d6d732",
+    "FileName": "BF6_4.5k_256.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-08-12T17:16:07.601646",
+    "Version": "8.3.175",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      256,
+      256
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "3c3e38e6328125b358259af82302966185dace59",
