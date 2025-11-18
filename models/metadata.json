@@ -119,6 +119,23 @@
     "Args": null
   },
   {
+    "Hash": "0a8f1e1108986a90634f1410f151af11334bc297",
+    "FileName": "BloodStrikeV2-GK.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-11-15T20:00:39.432163",
+    "Version": "8.3.223",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "cf649a87b97e3f5a16120ebd5e937e2d240d4c57",
     "FileName": "Krunker (2K) by Themida.onnx",
     "Author": "Ultralytics",
@@ -1739,7 +1756,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-11-14T18:41:18Z",
+    "Created": "2025-11-18T17:36:56Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
