@@ -1756,7 +1756,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-11-18T17:36:56Z",
+    "Created": "2025-11-18T18:00:37Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -3400,6 +3400,23 @@
     "Args": null
   },
   {
+    "Hash": "39f4a2bf9914ffaca745c559fd28f49efc7373d5",
+    "FileName": "Crossout2k-GK.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-11-18T10:38:09.434210",
+    "Version": "8.3.223",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "834bf48d4b53dd4ba4c40e2115fea267c59eaf36",
     "FileName": "Mr.jeepers_bladeball_v2.onnx",
     "Author": "Ultralytics",
@@ -4520,6 +4537,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "c4945072126c86b2779a84f25a9644d2c24291ba",
+    "FileName": "CrossOutIconV1-GK.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-11-18T08:06:16.120548",
+    "Version": "8.3.223",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "bcb84aae0da3be3d4e0e6a2e82a4161c815674c7",
