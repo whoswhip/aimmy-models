@@ -1756,7 +1756,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-11-18T18:00:37Z",
+    "Created": "2025-11-20T01:46:57Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -2355,6 +2355,23 @@
     "Version": "8.3.179",
     "ModelType": "detect",
     "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
+    "Hash": "84c7be9ce5a7ca6123dc1ef1c378dcae5cec1140",
+    "FileName": "Fortnite - xxReflexTheOne.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLOv10n model trained on C:\\Users\\okcol\\Desktop\\Data Training\\imp4\\data.yaml",
+    "Created": "2025-11-19T20:33:33.771840",
+    "Version": "8.3.155",
+    "ModelType": "detect",
+    "Labels": "{0: '0'}",
     "ImageSize": [
       640,
       640
