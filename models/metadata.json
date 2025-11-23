@@ -850,6 +850,23 @@
     "Args": null
   },
   {
+    "Hash": "5f826cd7c69b53abfa04a12734dcf8208856d293",
+    "FileName": "Fortnite - xxReflexTheOne [Dynamic].onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLOv10n model trained on C:\\Users\\okcol\\Desktop\\Data Training\\imp4\\data.yaml",
+    "Created": "2025-11-19T20:34:28.045093",
+    "Version": "8.3.155",
+    "ModelType": "detect",
+    "Labels": "{0: '0'}",
+    "ImageSize": [
+      0,
+      0
+    ],
+    "BatchSize": 0,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': True, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "a22d0354cadf7b788abb137208b714c4d25389b5",
     "FileName": "BO6-Otero_Thermal_2x.onnx",
     "Author": "Ultralytics",
@@ -1756,7 +1773,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-11-20T01:46:57Z",
+    "Created": "2025-11-20T12:54:03Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -1953,6 +1970,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "cf768657b70d6de9b49b292198d8957a9357add3",
+    "FileName": "Fortnite - xxReflexTheOne [320x320].onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLOv10n model trained on C:\\Users\\okcol\\Desktop\\Data Training\\imp4\\data.yaml",
+    "Created": "2025-11-19T20:35:27.275178",
+    "Version": "8.3.155",
+    "ModelType": "detect",
+    "Labels": "{0: '0'}",
+    "ImageSize": [
+      320,
+      320
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "ca20715250fb1c5d65b366aa1d83817354f0d582",
