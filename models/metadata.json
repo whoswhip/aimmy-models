@@ -918,6 +918,23 @@
     "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': 11, 'nms': False}"
   },
   {
+    "Hash": "f9348a0feaa23ea9fa1cba5835d68bb8303e8b52",
+    "FileName": "BloodStrikeV3-GK.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-11-20T16:35:19.838652",
+    "Version": "8.3.229",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "e235ac56046368361d0a40c8d7954d900155e3bb",
     "FileName": "FN_150k.onnx",
     "Author": "Ultralytics",
@@ -1773,7 +1790,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-11-20T12:54:03Z",
+    "Created": "2025-11-23T17:56:22Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -3636,6 +3653,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "252311000ff9d763347d28b2dc6ce50fda331ccb",
+    "FileName": "The Finals120k.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-04-19T11:49:21.088727",
+    "Version": "8.3.99",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "7c7e5565feeb48855805a31f03b102cd4b1cf9ef",
