@@ -1411,6 +1411,23 @@
     "Args": null
   },
   {
+    "Hash": "65f016fcd9b094512e79f5aa8402a9a14cf6bb6e",
+    "FileName": "Unit1968-GK.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on data.yaml",
+    "Created": "2025-11-25T10:30:11.226955",
+    "Version": "8.3.229",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "d35db5128b14ef570ab9d9dd0025911dea8f055a",
     "FileName": "TF2-by-GoodKnight_~~d35d.onnx",
     "Author": "Ultralytics",
@@ -1790,7 +1807,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-11-23T17:56:22Z",
+    "Created": "2025-11-29T23:38:50Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -3689,6 +3706,23 @@
     "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
+    "Hash": "d5fddec01287470e291607c0f1efb363d8c00d61",
+    "FileName": "The Lost Front v0.4 [3rr0r].onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-11-28T23:47:00.955082",
+    "Version": "8.3.232",
+    "ModelType": "detect",
+    "Labels": "{0: 'target'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "d258215c70412b27f805fc5d710d5c437a7b341e",
     "FileName": "BO6-Otero_Thermal_2x%_Revision.onnx",
     "Author": "Ultralytics",
@@ -4027,6 +4061,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "d2caa4da2aee7d0f9cd437b8523111ad9da918a3",
+    "FileName": "The Lost Front v0.2 [3rr0r].onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-11-27T00:53:42.720425",
+    "Version": "8.3.232",
+    "ModelType": "detect",
+    "Labels": "{0: 'target'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "9e4b9a5a1d11527ec40d19c10724f62ab9091eb9",
