@@ -176,7 +176,7 @@ function addFileToDOM(model) {
         fileName += `.${fileExtension}`;
     }
     const fileSize = formatBytes(model.size);
-    const fileHtml = `<a href="${fileUrl}" style="display:flex;"><span style="width: 80%; display: inline-block;">${fileName}</span>  <span style="width: 20%; text-align: right; margin-left: auto; display: inline-block;">${fileSize}</span></a>`;
+    const fileHtml = `<a href="${fileUrl}"><span class="file-name">${fileName}</span><span class="file-size">${fileSize}</span></a>`;
     const fileElement = document.createElement("li");
     fileElement.className = "file-item";
     fileElement.innerHTML = fileHtml;
@@ -485,10 +485,14 @@ function handleFileUpload(event) {
         const matchingFile = files.find(f => f.sha === hash);
 
         if (matchingFile) {
-            document.getElementById('resultText').textContent = '❌ File is NOT unique';
-            document.getElementById('resultText').style.color = '#ff6b6b';
-            document.getElementById('matchInfo').innerHTML = `
-                    <p style="color: #ccc; margin-top: 10px;">
+            const resultText = document.getElementById('resultText');
+            resultText.textContent = '❌ File is NOT unique';
+            resultText.className = 'result-text text-error';
+
+            const matchInfo = document.getElementById('matchInfo');
+            matchInfo.className = 'match-info';
+            matchInfo.innerHTML = `
+                    <p>
                         <strong>Match found:</strong><br>
                         Name: ${matchingFile.name}<br>
                         Size: ${formatBytes(matchingFile.size)}<br>
@@ -496,17 +500,22 @@ function handleFileUpload(event) {
                     </p>
                 `;
         } else {
-            document.getElementById('resultText').textContent = '✅ File appears to be unique';
-            document.getElementById('resultText').style.color = '#51cf66';
-            document.getElementById('matchInfo').innerHTML = `
-                    <p style="color: #ccc; margin-top: 10px;">
+            const resultText = document.getElementById('resultText');
+            resultText.textContent = '✅ File appears to be unique';
+            resultText.className = 'result-text text-success';
+
+            const matchInfo = document.getElementById('matchInfo');
+            matchInfo.className = 'match-info';
+            matchInfo.innerHTML = `
+                    <p>
                         No matching SHA-1 hash found in our database.
                     </p>
                 `;
         }
     }).catch(error => {
-        document.getElementById('resultText').textContent = '❌ Error calculating hash';
-        document.getElementById('resultText').style.color = '#ff6b6b';
+        const resultText = document.getElementById('resultText');
+        resultText.textContent = '❌ Error calculating hash';
+        resultText.className = 'result-text text-error';
         document.getElementById('hashText').textContent = error.message;
     });
 }
