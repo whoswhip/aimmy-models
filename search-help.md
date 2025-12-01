@@ -4,7 +4,11 @@ Include `!unique` to ensure there are no duplicate models, this is based off of 
 ## sort:size
 Including `sort:size` will sort the files ascending (small to large) based off their file size.
 ## sort:-size
-Including `sort:-size` will sort the files descending (large to small) based off their file size:
+Including `sort:-size` will sort the files descending (large to small) based off their file size.
+## sort:date
+Including `sort:date` will sort the files ascending (small to large) based off either when the file was uploaded or the creation time in the ONNX metadata.
+## sort:-date
+Including `sort:date` will sort the files descending (large to small) based off either when the file was uploaded or the creation time in the ONNX metadata.
 ## githash:
 Including `githash:{hash}` will only show files with that hash.
 ## imagesize:
