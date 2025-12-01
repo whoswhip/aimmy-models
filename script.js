@@ -207,7 +207,7 @@ function addFileToDOM(model) {
 
     const fileSize = formatBytes(model.size);
     const fileDateObj = getSmallestDateFromMetadata(model) || null;
-    const fileDate = fileDateObj ? fileDateObj.toISOString().split('T')[0] : 'N/A';
+    const fileDate = fileDateObj ? fileDateObj.toISOString().split('T')[0] : '';
 
     const fileHtml = `<a href="${fileUrl}"><span class="file-name">${fileName}</span> <span class="file-date">${fileDate}</span> <span class="file-size">${fileSize}</span></a>`;
     const fileElement = document.createElement("li");
