@@ -1807,7 +1807,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-11-29T23:38:50Z",
+    "Created": "2025-12-01T21:35:04Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -1817,6 +1817,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "ee8327d14ff5ee73ff97523632425f3a067095a9",
+    "FileName": "The Lost Front v0.4.5 [3rr0r].onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-11-29T01:51:20.146236",
+    "Version": "8.3.232",
+    "ModelType": "detect",
+    "Labels": "{0: 'target'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "6517ca3a3b10226188a421648bb08b2cf9732607",
@@ -4826,6 +4843,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "d2619a04c5e0f9cd27d552daef40382b013fa99d",
+    "FileName": "AIOHeadsV1-GK.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-11-28T00:49:11.527973",
+    "Version": "8.3.232",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
   },
   {
     "Hash": "93c8435fe4d485db8abdcb74868d4efeaa50f9c3",
