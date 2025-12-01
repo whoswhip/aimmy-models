@@ -28,6 +28,8 @@
         <div class="context-item" onclick="copyGitHash()">Copy GitHash</div>
         <div class="context-item" onclick="copyFileUrl()">Copy File URL</div>
         <div class="context-item" onclick="copyShortUrl()">Copy Short URL</div>
+        <div class="context-item" onclick="copyModelInfo()">Copy Model Info</div>
+        <div class="context-item" onclick="openInDiscord()" id="context-open-in-discord">Open In Discord</div>
     </div>
 
     <div id="uniqueModal" class="modal-overlay">
@@ -57,6 +59,7 @@
         <a href="#" id="is-it-unique" onclick="uniqueModal()">Is it unique?</a>
     </footer>
 </body>
+<script src="metadata.js"></script>
 <script src="script.js"></script>
 
 </html>

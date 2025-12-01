@@ -36,7 +36,8 @@ const CONFIG = {
 };
 
 let files = [];
-let metadata = null;
+let ONNXmetadata = null;
+let fileMetadata = null;
 let currentType = "models";
 let contextMenuTarget = null;
 
@@ -54,8 +55,8 @@ function initializePage() {
     if (hash) {
         document.getElementById("search").value = decodeURIComponent(hash);
     }
-    fetchMetadata();
-    getFiles().then(() => {
+    
+    fetchMetadata().then(() => getFiles()).then(() => {
         if (hash) {
             search();
         }
@@ -107,6 +108,9 @@ async function getFiles() {
         }
 
         files.sort((a, b) => a.name.localeCompare(b.name));
+        await updateFilesWithMetadata();
+        
+
         files.forEach(model => {
             addFileToDOM(model);
         });
@@ -115,17 +119,42 @@ async function getFiles() {
     }
 }
 
+async function updateFilesWithMetadata() {
+    if (!fileMetadata) return;
+    if (!ONNXmetadata) return;
+    const metadataMap = new Map();
+    const onnxMetadataMap = new Map();
+    fileMetadata.forEach(entry => {
+        metadataMap.set(entry.sha1, entry);
+    });
+    ONNXmetadata.forEach(entry => {
+        onnxMetadataMap.set(entry.Hash, entry);
+    });
+
+    files = files.map(file => {
+        const metadataEntry = metadataMap.get(file.sha);
+        const onnxEntry = onnxMetadataMap.get(file.sha);
+        return {
+            ...file,
+            metadata: metadataEntry || null,
+            onnxMetadata: onnxEntry || null
+        };
+    });
+}
+    
+
 async function fetchMetadata() {
-    const metadataUrl = `https://raw.githubusercontent.com/whoswhip/aimmy-models/main/models/metadata.json`;
+    const metadataUrl = `/models/metadata.json`;
     try {
         const response = await fetch(metadataUrl);
         if (!response.ok) {
             throw new Error(`HTTP error status: ${response.status}`);
         }
-        metadata = await response.json();
+        ONNXmetadata = await response.json();
     } catch (error) {
         console.error('Failed to fetch metadata:', error);
     }
+    fileMetadata = await fetchAndParseMetadata('/tools/discord-file-scraper/metadata.dat');
 }
 
 async function fetchFromEndpoints(urls) {
@@ -175,8 +204,12 @@ function addFileToDOM(model) {
     if (fileName.toLowerCase().endsWith(`.${fileExtension}`) === false) {
         fileName += `.${fileExtension}`;
     }
+
     const fileSize = formatBytes(model.size);
-    const fileHtml = `<a href="${fileUrl}"><span class="file-name">${fileName}</span><span class="file-size">${fileSize}</span></a>`;
+    const fileDateObj = getSmallestDateFromMetadata(model) || null;
+    const fileDate = fileDateObj ? fileDateObj.toISOString().split('T')[0] : 'N/A';
+
+    const fileHtml = `<a href="${fileUrl}"><span class="file-name">${fileName}</span> <span class="file-date">${fileDate}</span> <span class="file-size">${fileSize}</span></a>`;
     const fileElement = document.createElement("li");
     fileElement.className = "file-item";
     fileElement.innerHTML = fileHtml;
@@ -227,13 +260,53 @@ function search() {
             clean: (s) => s.replace("sort:-size", "").trim()
         },
         {
+            test: /sort:name/,
+            apply: (files) => {
+                sortApplied = true;
+                return files.slice().sort((a, b) => a.name.localeCompare(b.name));
+            },
+            clean: (s) => s.replace("sort:name", "").trim()
+        },
+        {
+            test: /sort:-name/,
+            apply: (files) => {
+                sortApplied = true;
+                return files.slice().sort((a, b) => b.name.localeCompare(a.name));
+            },
+            clean: (s) => s.replace("sort:-name", "").trim()
+        },
+        {
+            test: /sort:date/,
+            apply: (files) => {
+                sortApplied = true;
+                return files.slice().sort((a, b) => {
+                    const dateA = getSmallestDateFromMetadata(a) || new Date(0);
+                    const dateB = getSmallestDateFromMetadata(b) || new Date(0);
+                    return dateA - dateB;
+                });
+            },
+            clean: (s) => s.replace("sort:date", "").trim()
+        },
+        {
+            test: /sort:-date/,
+            apply: (files) => {
+                sortApplied = true;
+                return files.slice().sort((a, b) => {
+                    const dateA = getSmallestDateFromMetadata(a) || new Date(0);
+                    const dateB = getSmallestDateFromMetadata(b) || new Date(0);
+                    return dateB - dateA;
+                });
+            },
+            clean: (s) => s.replace("sort:-date", "").trim()
+        },
+        {
             test: /imagesize:(>=|<=|>|<|)?(\d+)/,
             apply: (files, match) => {
-                if (!metadata) return files;
+                if (!ONNXmetadata) return files;
                 const operator = match[1] || '=';
                 const targetSize = parseInt(match[2]);
                 return files.filter(file => {
-                    const metaEntry = metadata.find(meta => meta.Hash === file.sha);
+                    const metaEntry = ONNXmetadata.find(meta => meta.Hash === file.sha);
                     if (metaEntry && metaEntry.ImageSize && Array.isArray(metaEntry.ImageSize)) {
                         const imageSize = metaEntry.ImageSize[0];
                         switch (operator) {
@@ -252,11 +325,11 @@ function search() {
         {
             test: /labels:(>=|<=|>|<|)?(\d+)/,
             apply: (files, match) => {
-                if (!metadata) return files;
+                if (!ONNXmetadata) return files;
                 const operator = match[1] || '=';
                 const targetCount = parseInt(match[2]);
                 return files.filter(file => {
-                    const metaEntry = metadata.find(meta => meta.Hash === file.sha);
+                    const metaEntry = ONNXmetadata.find(meta => meta.Hash === file.sha);
                     if (metaEntry && metaEntry.Labels) {
                         let labelCount = 0;
                         try {
@@ -303,10 +376,10 @@ function search() {
         {
             test: /dynamic:(true|false)/,
             apply: (files, match) => {
-                if (!metadata) return files;
+                if (!ONNXmetadata) return files;
                 const isDynamic = match[1] === 'true';
                 return files.filter(file => {
-                    const metaEntry = metadata.find(meta => meta.Hash === file.sha);
+                    const metaEntry = ONNXmetadata.find(meta => meta.Hash === file.sha);
                     if (!metaEntry) return false;
                     let argsDynamic = null;
                     if (metaEntry.Args) {
@@ -332,10 +405,10 @@ function search() {
         {
             test: /simplified:(true|false)/,
             apply: (files, match) => {
-                if (!metadata) return files;
+                if (!ONNXmetadata) return files;
                 const isSimplified = match[1] === 'true';
                 return files.filter(file => {
-                    const metaEntry = metadata.find(meta => meta.Hash === file.sha);
+                    const metaEntry = ONNXmetadata.find(meta => meta.Hash === file.sha);
                     if (!metaEntry) return false;
                     let argsSimplified = null;
                     if (metaEntry.Args) {
@@ -392,8 +465,25 @@ function showContextMenu(e) {
     contextMenuTarget = e.currentTarget;
     const contextMenu = document.getElementById('contextMenu');
     contextMenu.style.display = 'block';
-    contextMenu.style.left = e.pageX + 'px';
-    contextMenu.style.top = e.pageY + 'px';
+    const rect = contextMenu.getBoundingClientRect();
+    let left = e.pageX;
+    let top = e.pageY;
+    if (left + rect.width > window.innerWidth) {
+        left = window.innerWidth - rect.width - 10;
+    }
+    if (top + rect.height > window.innerHeight) {
+        top = window.innerHeight - rect.height - 10;
+    }
+    contextMenu.style.left = left + 'px';
+    contextMenu.style.top = top + 'px';
+    const sha = contextMenuTarget.getAttribute('data-sha');
+    const entry = files.find(f => f.sha === sha);
+    const discordLinkItem = document.getElementById('context-open-in-discord');
+    if (entry && entry.metadata && entry.metadata.messageMetadata) {
+        discordLinkItem.style.display = 'block';
+    } else {
+        discordLinkItem.style.display = 'none';
+    }
 }
 
 function hideContextMenu() {
@@ -457,6 +547,52 @@ function copyShortUrl() {
             });
     }
     hideContextMenu();
+}
+
+function openInDiscord() {
+    if (contextMenuTarget) {
+        const sha = contextMenuTarget.getAttribute('data-sha');
+        const entry = files.find(f => f.sha === sha);
+        if (entry && entry.metadata && entry.metadata.messageMetadata) {
+            const serverID = entry.metadata.serverID;
+            const channelID = entry.metadata.channelID;
+            const messageID = entry.metadata.messageID;
+            const discordUrl = `https://discord.com/channels/${serverID}/${channelID}/${messageID}`;
+            window.open(discordUrl, '_blank');
+        }
+    }
+    hideContextMenu();
+}
+
+function copyModelInfo() {
+    if (contextMenuTarget) {
+        const sha = contextMenuTarget.getAttribute('data-sha');
+        const entry = files.find(f => f.sha === sha);
+        if (entry) {
+            navigator.clipboard.writeText(JSON.stringify(entry, (key, value) => 
+                typeof value === 'bigint' ? value.toString() : value
+            , null, 2))
+                .catch(err => {
+                    console.error('Failed to copy Model Info:', err);
+                });
+        }
+    }
+    hideContextMenu();
+}
+
+function getSmallestDateFromMetadata(entry) {
+    let dates = [];
+    if (entry.metadata && entry.metadata.timestamp) {
+        dates.push(new Date(Number(entry.metadata.timestamp) * 1000));
+    }
+    if (entry.onnxMetadata && entry.onnxMetadata.Created) {
+        // "Created": "2024-01-23T15:44:39.250874",
+        dates.push(new Date(entry.onnxMetadata.Created));
+    }
+    if (dates.length === 0) {
+        return null;
+    }
+    return new Date(Math.min(...dates));
 }
 
 document.addEventListener('click', hideContextMenu);

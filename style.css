@@ -135,12 +135,21 @@ h1 {
     margin-right: 16px;
 }
 
-.file-size {
+.file-size,
+.file-date {
     flex-shrink: 0;
     color: var(--text-secondary);
     font-size: 0.85rem;
     font-variant-numeric: tabular-nums;
 }
+
+.file-date {
+    width: 100px;
+    text-align: right;
+    margin-right: 16px;
+}
+
+
 
 .file-item:hover a {
     background-color: var(--card-hover);
@@ -158,7 +167,15 @@ h1 {
 
     .file-item {
         margin-bottom: 0;
+        max-width: 100%;
+        min-width: 0;
     }
+
+    .file-item a {
+        max-width: 100%;
+        min-width: 0;
+    }
+
 }
 
 footer {
