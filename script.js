@@ -51,13 +51,15 @@ function initializePage() {
 
     updatePageForType(currentType);
 
-    const hash = window.location.hash.substring(1).toLowerCase();
-    if (hash) {
-        document.getElementById("search").value = decodeURIComponent(hash);
+    const rawHash = window.location.hash.substring(1);
+    if (rawHash) {
+        const decoded = decodeURIComponent(rawHash);
+        const searchValue = decoded.split('?')[0].toLowerCase();
+        document.getElementById("search").value = searchValue;
     }
     
     fetchMetadata().then(() => getFiles()).then(() => {
-        if (hash) {
+        if (rawHash) {
             search();
         }
         if (urlParams.has("model")) {
