@@ -1807,7 +1807,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-12-01T21:35:04Z",
+    "Created": "2025-12-09T17:45:50Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -2752,6 +2752,23 @@
     ],
     "BatchSize": 1,
     "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
+    "Hash": "34d4f7561a0428a760baeab913af78f02e3598a7",
+    "FileName": "HypershotV1Harlan.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on CustomCharacterPath.yaml",
+    "Created": "2025-12-09T08:13:06.943400",
+    "Version": "8.2.75",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": null
   },
   {
     "Hash": "9107ca5cb4809008492b5ac6298882a3ed068c1c",
