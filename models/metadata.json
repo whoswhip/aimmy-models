@@ -1394,6 +1394,23 @@
     "Args": null
   },
   {
+    "Hash": "5748669113612f23302f464b1faebdae8f320ecf",
+    "FileName": "BloodStrikeV4-GK.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on data.yaml",
+    "Created": "2025-12-23T21:53:58.411402",
+    "Version": "8.3.232",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "03eb2cddf04df7801e656526b385dd25a4a6d3d8",
     "FileName": "MEMELINES - Frontlines by SIRMEME.onnx",
     "Author": "Ultralytics",
@@ -1807,7 +1824,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-12-09T17:45:50Z",
+    "Created": "2025-12-28T05:23:58Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -3060,6 +3077,23 @@
     "Args": null
   },
   {
+    "Hash": "e97c35755075d8bb35ba699487a187c69d739e15",
+    "FileName": "warzonebest.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11n model trained on dataset.yaml",
+    "Created": "2025-12-27T21:59:06.407786",
+    "Version": "8.3.241",
+    "ModelType": "detect",
+    "Labels": "{0: 'enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "a3a33344239df6eb171299d1b3c132f7508a6a5e",
     "FileName": "Division_2-by-GK.onnx",
     "Author": "Ultralytics",
@@ -3358,6 +3392,23 @@
     "Version": "8.3.84",
     "ModelType": "detect",
     "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
+    "Hash": "37f3c7022e6313062dfaafd5f8381de26c08472f",
+    "FileName": "GKs-AIOV3.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics GKs-AIOV3 model trained on data.yaml",
+    "Created": "2025-12-22T18:57:31.892298",
+    "Version": "8.3.240",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
     "ImageSize": [
       640,
       640
