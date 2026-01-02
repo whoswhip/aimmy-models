@@ -57,7 +57,7 @@ function initializePage() {
         const searchValue = decoded.split('?')[0].toLowerCase();
         document.getElementById("search").value = searchValue;
     }
-    
+
     fetchMetadata().then(() => getFiles()).then(() => {
         if (rawHash) {
             search();
@@ -111,7 +111,7 @@ async function getFiles() {
 
         files.sort((a, b) => a.name.localeCompare(b.name));
         await updateFilesWithMetadata();
-        
+
 
         files.forEach(model => {
             addFileToDOM(model);
@@ -143,7 +143,7 @@ async function updateFilesWithMetadata() {
         };
     });
 }
-    
+
 
 async function fetchMetadata() {
     const metadataUrl = `/models/metadata.json`;
@@ -481,10 +481,14 @@ function showContextMenu(e) {
     const sha = contextMenuTarget.getAttribute('data-sha');
     const entry = files.find(f => f.sha === sha);
     const discordLinkItem = document.getElementById('context-open-in-discord');
+    const discordLinkAppItem = document.getElementById('context-open-in-discord-app');
     if (entry && entry.metadata && entry.metadata.messageMetadata) {
+
         discordLinkItem.style.display = 'block';
+        discordLinkAppItem.style.display = 'block';
     } else {
         discordLinkItem.style.display = 'none';
+        discordLinkAppItem.style.display = 'none';
     }
 }
 
@@ -551,7 +555,7 @@ function copyShortUrl() {
     hideContextMenu();
 }
 
-function openInDiscord() {
+function openInDiscord(app = false) {
     if (contextMenuTarget) {
         const sha = contextMenuTarget.getAttribute('data-sha');
         const entry = files.find(f => f.sha === sha);
@@ -559,7 +563,7 @@ function openInDiscord() {
             const serverID = entry.metadata.serverID;
             const channelID = entry.metadata.channelID;
             const messageID = entry.metadata.messageID;
-            const discordUrl = `https://discord.com/channels/${serverID}/${channelID}/${messageID}`;
+            const discordUrl = `${app ? "discord://" : "https://"}discord.com/channels/${serverID}/${channelID}/${messageID}`;
             window.open(discordUrl, '_blank');
         }
     }
@@ -571,9 +575,9 @@ function copyModelInfo() {
         const sha = contextMenuTarget.getAttribute('data-sha');
         const entry = files.find(f => f.sha === sha);
         if (entry) {
-            navigator.clipboard.writeText(JSON.stringify(entry, (key, value) => 
+            navigator.clipboard.writeText(JSON.stringify(entry, (key, value) =>
                 typeof value === 'bigint' ? value.toString() : value
-            , null, 2))
+                , null, 2))
                 .catch(err => {
                     console.error('Failed to copy Model Info:', err);
                 });
