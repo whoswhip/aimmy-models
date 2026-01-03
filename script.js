@@ -302,11 +302,11 @@ function search() {
             clean: (s) => s.replace("sort:-date", "").trim()
         },
         {
-            test: /imagesize:(>=|<=|>|<|)?(\d+)/,
+            test: /(imagesize|imgsz):(>=|<=|>|<)?(\d+)/,
             apply: (files, match) => {
                 if (!ONNXmetadata) return files;
-                const operator = match[1] || '=';
-                const targetSize = parseInt(match[2]);
+                const operator = match[2] || '=';
+                const targetSize = parseInt(match[3]);
                 return files.filter(file => {
                     const metaEntry = ONNXmetadata.find(meta => meta.Hash === file.sha);
                     if (metaEntry && metaEntry.ImageSize && Array.isArray(metaEntry.ImageSize)) {
@@ -322,7 +322,7 @@ function search() {
                     return false;
                 });
             },
-            clean: (s) => s.replace(/imagesize:(>=|<=|>|<|)?\d+/, "").trim()
+            clean: (s) => s.replace(/(imagesize|imgsz):(>=|<=|>|<)?\d+/, "").trim()
         },
         {
             test: /labels:(>=|<=|>|<|)?(\d+)/,
