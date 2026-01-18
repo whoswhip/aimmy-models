@@ -102,6 +102,23 @@
     "Args": null
   },
   {
+    "Hash": "71df2b409c0099501715bd1318450012a52c17ed",
+    "FileName": "insanewarzone(5.8k)by.sal.and.bodda.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11m model trained on C:\\Users\\salio\\OneDrive\\Desktop\\yolo\\dataset.yaml",
+    "Created": "2026-01-01T02:07:04.872013",
+    "Version": "8.3.241",
+    "ModelType": "detect",
+    "Labels": "{0: 'enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': 17, 'nms': False}"
+  },
+  {
     "Hash": "5dd052c75d8cf5e1884e41e36500ca4a7deb6ee2",
     "FileName": "Paladins [V1] by zxqaui.onnx",
     "Author": "Ultralytics",
@@ -533,6 +550,23 @@
     "License": "AGPL-3.0 License (https://ultralytics.com/license)",
     "Description": "Ultralytics YOLO11m model trained on C:\\Users\\salio\\OneDrive\\Desktop\\yolo\\dataset.yaml",
     "Created": "2025-12-31T09:44:05.592160",
+    "Version": "8.3.241",
+    "ModelType": "detect",
+    "Labels": "{0: 'enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
+    "Hash": "d5cfc0a8899d8a38a5844b24252c9e9374e9ede9",
+    "FileName": "insanewarzone(5.8k).onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11m model trained on C:\\Users\\salio\\OneDrive\\Desktop\\yolo\\dataset.yaml",
+    "Created": "2026-01-01T02:31:41.337051",
     "Version": "8.3.241",
     "ModelType": "detect",
     "Labels": "{0: 'enemy'}",
@@ -1139,6 +1173,23 @@
     "Args": null
   },
   {
+    "Hash": "86ab1fe0160fd5caaee12b1e397c6dce2b19f3a9",
+    "FileName": "toogoodWZ.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11s model trained on C:\\Users\\salio\\OneDrive\\Desktop\\yolo\\dataset.yaml",
+    "Created": "2026-01-08T21:20:06.367765",
+    "Version": "8.3.241",
+    "ModelType": "detect",
+    "Labels": "{0: 'enemy'}",
+    "ImageSize": [
+      0,
+      0
+    ],
+    "BatchSize": 0,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': True, 'simplify': True, 'opset': 17, 'nms': False}"
+  },
+  {
     "Hash": "cb41429d65c5034d06469e6d8a5f776df279d35a",
     "FileName": "shatterline.onnx",
     "Author": "Ultralytics",
@@ -1649,6 +1700,23 @@
     "Args": null
   },
   {
+    "Hash": "1adff57b4632c62b76d06e1cd561fd986de66418",
+    "FileName": "trypreformance.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11m model trained on C:\\Users\\salio\\OneDrive\\Desktop\\yolo\\dataset.yaml",
+    "Created": "2026-01-10T05:56:23.421441",
+    "Version": "8.3.241",
+    "ModelType": "detect",
+    "Labels": "{0: 'enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': False, 'opset': 17, 'nms': False}"
+  },
+  {
     "Hash": "6aad3ba12f5a17ffece03d0eed3254e81ce05193",
     "FileName": "CS2_v1.onnx",
     "Author": "Ultralytics",
@@ -1875,7 +1943,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2025-12-31T16:37:47Z",
+    "Created": "2026-01-18T07:28:39Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -3145,6 +3213,23 @@
     "Args": null
   },
   {
+    "Hash": "76f6bd128f80fd7cef04bf98d248c4002546cfb0",
+    "FileName": "insaneWZupdate(6k) (2).onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11m model trained on C:\\Users\\salio\\OneDrive\\Desktop\\yolo\\dataset.yaml",
+    "Created": "2026-01-03T11:34:30.191256",
+    "Version": "8.3.241",
+    "ModelType": "detect",
+    "Labels": "{0: 'enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': 17, 'nms': False}"
+  },
+  {
     "Hash": "e97c35755075d8bb35ba699487a187c69d739e15",
     "FileName": "warzonebest.onnx",
     "Author": "Ultralytics",
@@ -3908,6 +3993,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "84659a54f6f4ae05f22598a8b692692d28d6fa5a",
+    "FileName": "valorant_bestV2.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11m model trained on C:\\Users\\Abdullah\\Desktop\\yolo\\dataset.yaml",
+    "Created": "2026-01-05T23:55:23.116619",
+    "Version": "8.3.246",
+    "ModelType": "detect",
+    "Labels": "{0: 'enemy'}",
+    "ImageSize": [
+      0,
+      0
+    ],
+    "BatchSize": 0,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': True, 'simplify': True, 'opset': 17, 'nms': False}"
   },
   {
     "Hash": "38af21993dc68b7c05c247813304f1c6ea56f157",
