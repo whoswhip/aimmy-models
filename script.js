@@ -564,7 +564,7 @@ function openInDiscord(app = false) {
             const channelID = entry.metadata.channelID;
             const messageID = entry.metadata.messageID;
             const discordUrl = `${app ? "discord://" : "https://"}discord.com/channels/${serverID}/${channelID}/${messageID}`;
-            window.open(discordUrl, '_blank');
+            if (!app) window.open(discordUrl, '_blank');
         }
     }
     hideContextMenu();
