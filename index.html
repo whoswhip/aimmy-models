@@ -1,67 +1,191 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aimmy Models</title>
 
-    <meta property="og:title" content="Aimmy Models & Configs">
-    <meta property="og:description" content="A collection of models & Configs for Aimmy.">
-    <meta property="og:url" content="https://github.com/whoswhip/aimmy-models">
+    <meta property="og:title" content="Aimmy Models & Configs" />
+    <meta
+      property="og:description"
+      content="A collection of models & Configs for Aimmy."
+    />
+    <meta
+      property="og:url"
+      content="https://github.com/whoswhip/aimmy-models"
+    />
 
-    <link rel="stylesheet" href="style.css">
-    <script defer src="https://analytics.whoswhip.dev/script.js" data-website-id="c58b9732-79f1-4a4a-81df-2a336aa69041"></script>
-</head>
+    <link rel="stylesheet" href="style.css" />
+    <script
+      defer
+      src="https://analytics.whoswhip.dev/script.js"
+      data-website-id="c58b9732-79f1-4a4a-81df-2a336aa69041"
+    ></script>
+  </head>
 
-<body>
+  <body>
     <h1>Every Aimmy Model</h1>
     <div class="search-container">
-        <input type="text" id="search" placeholder="Search... (ex. !unique)" onkeyup="search()">
-        <p id="count"></p>
+      <input
+        type="text"
+        id="search"
+        placeholder="Search... (ex. !unique)"
+        onkeyup="search()"
+      />
+      <p id="count"></p>
     </div>
-    <div id="files">
-    </div>
+    <div id="files"></div>
 
     <div id="contextMenu" class="context-menu">
-        <div class="context-item" onclick="downloadFile()">Download</div>
-        <div class="context-item" onclick="openInNetron()">Inspect</div>
-        <div class="context-item" onclick="copyGitHash()">Copy GitHash</div>
-        <div class="context-item" onclick="copyFileUrl()">Copy File URL</div>
-        <div class="context-item" onclick="copyShortUrl()">Copy Short URL</div>
-        <div class="context-item" onclick="copyModelInfo()">Copy Model Info</div>
-        <div class="context-item" onclick="openInDiscord()" id="context-open-in-discord">Open In Discord</div>
-        <div class="context-item" onclick="openInDiscord(true)" id="context-open-in-discord-app">Open In Discord App</div>
+      <div class="context-item" onclick="downloadFile()">Download</div>
+      <div class="context-item" onclick="openInNetron()">Inspect</div>
+      <div class="context-item" onclick="copyGitHash()">Copy GitHash</div>
+      <div class="context-item" onclick="copyFileUrl()">Copy File URL</div>
+      <div class="context-item" onclick="copyShortUrl()">Copy Short URL</div>
+      <div class="context-item" onclick="copyModelInfo()">Copy Model Info</div>
+      <div
+        class="context-item"
+        onclick="openInDiscord()"
+        id="context-open-in-discord"
+      >
+        Open In Discord
+      </div>
+      <div
+        class="context-item"
+        onclick="openInDiscord(true)"
+        id="context-open-in-discord-app"
+      >
+        Open In Discord App
+      </div>
     </div>
 
     <div id="uniqueModal" class="modal-overlay">
-        <div class="modal">
-            <button class="close-modal" onclick="closeUniqueModal()">&times;</button>
-            <h2>Is it unique?</h2>
-            <p>Upload a file to check if it's unique by comparing its SHA-1 hash with the files in our database.</p>
+      <div class="modal">
+        <button class="close-modal" onclick="closeUniqueModal()">
+          &times;
+        </button>
+        <h2>Is it unique?</h2>
+        <p>
+          Upload a file to check if it's unique by comparing its SHA-1 hash with
+          the files in our database.
+        </p>
 
-            <div class="file-drop-area" onclick="document.getElementById('fileInput').click()">
-                <p>Click here or drag and drop a file</p>
-                <input type="file" id="fileInput" class="file-input" onchange="handleFileUpload(event)">
-            </div>
-
-            <div id="resultArea" class="result-area">
-                <div id="resultText" class="result-text"></div>
-                <div id="hashText" class="hash-text"></div>
-                <div id="matchInfo"></div>
-            </div>
+        <div
+          class="file-drop-area"
+          onclick="document.getElementById('fileInput').click()"
+        >
+          <p>Click here or drag and drop a file</p>
+          <input
+            type="file"
+            id="fileInput"
+            class="file-input"
+            onchange="handleFileUpload(event)"
+          />
         </div>
+
+        <div id="resultArea" class="result-area">
+          <div id="resultText" class="result-text"></div>
+          <div id="hashText" class="hash-text"></div>
+          <div id="matchInfo"></div>
+        </div>
+      </div>
     </div>
 
+    <div id="detectedGamesModal" class="modal-overlay">
+      <div class="modal">
+        <button class="close-modal" onclick="closeDetectedGamesModal()">
+          &times;
+        </button>
+        <div id="dg-modal-inner"></div>
+      </div>
+    </div>
 
     <footer>
-        <a href="https://github.com/whoswhip/aimmy-models">Source</a>
-        <a href="https://github.com/whoswhip/aimmy-models/blob/main/search-help.md">Search Help</a>
-        <a href="#" id="cfg-onnx"></a>
-        <a href="#" id="is-it-unique" onclick="uniqueModal()">Is it unique?</a>
+      <a href="https://github.com/whoswhip/aimmy-models">Source</a>
+      <a
+        href="https://github.com/whoswhip/aimmy-models/blob/main/search-help.md"
+        >Search Help</a
+      >
+      <a href="#" id="cfg-onnx"></a>
+      <a href="#" id="is-it-unique" onclick="uniqueModal()">Is it unique?</a>
+      <a href="#" id="detected-games" onclick="detectedGamesModal()"
+        >Detected Games</a
+      >
     </footer>
-</body>
-<script src="metadata.js"></script>
-<script src="script.js"></script>
+  </body>
+  <script src="metadata.js"></script>
+  <script src="script.js"></script>
 
+  <script>
+    function detectedGamesModal() {
+      fetch("https://whoswhip.dev/u/detected_games.md")
+        .then((response) => response.text())
+        .then((data) => {
+          const modalInner = document.getElementById("dg-modal-inner");
+          let htmlContent = data
+            .replace(/^# (.*$)/gim, "<h1>$1</h1>")
+            .replace(/^## (.*$)/gim, "<h2>$1</h2>")
+            .replace(/^> (.*$)/gim, "<blockquote>$1</blockquote>")
+            .replace(/\*\*(.*?)\*\*/gim, "<strong>$1</strong>")
+            .replace(/<t:(\d+)(?::D)?>/gim, (match, timestamp) => {
+              const date = new Date(parseInt(timestamp) * 1000);
+              const formatted = date.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              });
+              return `<time datetime="${timestamp}">${formatted}</time>`;
+            });
+          modalInner.innerHTML = htmlContent;
+        })
+        .catch((error) => {
+          console.error("Error fetching detected games data:", error);
+        });
+      document.getElementById("detectedGamesModal").classList.add("active");
+    }
+
+    function closeDetectedGamesModal() {
+      document.getElementById("detectedGamesModal").style.display = "none";
+    }
+  </script>
+
+  <style>
+    #detectedGamesModal .modal {
+      max-width: 1440px;
+    }
+    #dg-modal-inner {
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    #dg-modal-inner h1 {
+      font-size: 1.5em;
+      margin-bottom: 0.5em;
+      margin-top: 0.5em;
+    }
+    #dg-modal-inner h2 {
+      font-size: 1.2em;
+      margin-bottom: 0.5em;
+      margin-top: 0.5em;
+      text-align: left;
+    }
+    #dg-modal-inner blockquote {
+      border-left: 4px solid #eee;
+      padding-left: 1em;
+      color: #999;
+      font-weight: 450;
+      margin: 0;
+    }
+    #dg-modal-inner time {
+      font-style: italic;
+      color: #999;
+    }
+    #dg-modal-inner strong {
+      font-weight: bold;
+    }
+    #dg-modal-inner strong:last-child {
+      display: block;
+      margin-top: 1em;
+      margin-bottom: 0;
+    }
+  </style>
 </html>
