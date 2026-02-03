@@ -1943,7 +1943,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2026-01-18T07:28:39Z",
+    "Created": "2026-01-31T11:32:24Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -4333,6 +4333,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "836cb18dc1b7f2876909597d28a62f172e68860b",
+    "FileName": "wz.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on C:/Users/GreatestTech2EverLiv/Desktop/Trainer/detected_data\\data.yaml",
+    "Created": "2025-07-13T06:12:51.138287",
+    "Version": "8.3.84",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      320,
+      320
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': 11, 'nms': False}"
   },
   {
     "Hash": "d2caa4da2aee7d0f9cd437b8523111ad9da918a3",
