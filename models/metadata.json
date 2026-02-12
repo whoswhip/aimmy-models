@@ -136,6 +136,23 @@
     "Args": null
   },
   {
+    "Hash": "58a7c3bb85d9952c533f481d5a85e60cadb7aeb6",
+    "FileName": "APEX_RECON_BASE_v2.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics best model trained on C:/Users/GreatestTech2EverLiv/Desktop/Trainer/detected_data-RECON\\data.yaml",
+    "Created": "2025-08-09T07:47:04.861611",
+    "Version": "8.3.84",
+    "ModelType": "detect",
+    "Labels": "{0: 'Enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': None, 'nms': False}"
+  },
+  {
     "Hash": "0a8f1e1108986a90634f1410f151af11334bc297",
     "FileName": "BloodStrikeV2-GK.onnx",
     "Author": "Ultralytics",
@@ -1943,7 +1960,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2026-01-31T11:32:24Z",
+    "Created": "2026-02-10T18:11:20Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
@@ -3653,6 +3670,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "e29ee860ac862b61114aed39d52a2fa7424db665",
+    "FileName": "ApexLegendsOrbeet_10k.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics YOLO11s model trained on E:\\dataset_apex\\1\\data.yaml",
+    "Created": "2026-02-10T05:53:11.341731",
+    "Version": "8.4.11",
+    "ModelType": "detect",
+    "Labels": "{0: 'enemy'}",
+    "ImageSize": [
+      640,
+      640
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'fraction': 1.0, 'half': True, 'int8': False, 'dynamic': False, 'simplify': True, 'nms': False}"
   },
   {
     "Hash": "ce1291eb6df9c1e0832dcf74fb6b640f576f8c9d",
