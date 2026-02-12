@@ -6,7 +6,7 @@ const API_ENDPOINTS = {
         ],
         backup: [
             "https://api.github.com/repos/whoswhip/aimmy/contents/models",
-            "https://git.whoswhip.top/api/v1/repos/whoswhip/aimmy-models/contents/models",
+            "https://git.whoswhip.dev/api/v1/repos/whoswhip/aimmy-models/contents/models",
         ]
     },
     configs: {
@@ -16,7 +16,7 @@ const API_ENDPOINTS = {
         ],
         backup: [
             "https://api.github.com/repos/whoswhip/aimmy/contents/configs",
-            "https://git.whoswhip.top/api/v1/repos/whoswhip/aimmy-models/contents/configs",
+            "https://git.whoswhip.dev/api/v1/repos/whoswhip/aimmy-models/contents/configs",
         ]
     }
 };
