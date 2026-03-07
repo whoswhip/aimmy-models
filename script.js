@@ -1,38 +1,38 @@
 const API_ENDPOINTS = {
-    models: {
-        primary: [
-            "https://api.github.com/repos/whoswhip/aimmy-models/contents/models",
-            "https://api.github.com/repos/Babyhamsta/aimmy/contents/models"
-        ],
-        backup: [
-            "https://api.github.com/repos/whoswhip/aimmy/contents/models",
-            "https://git.whoswhip.dev/api/v1/repos/whoswhip/aimmy-models/contents/models",
-        ]
-    },
-    configs: {
-        primary: [
-            "https://api.github.com/repos/whoswhip/aimmy-models/contents/configs",
-            "https://api.github.com/repos/Babyhamsta/aimmy/contents/configs"
-        ],
-        backup: [
-            "https://api.github.com/repos/whoswhip/aimmy/contents/configs",
-            "https://git.whoswhip.dev/api/v1/repos/whoswhip/aimmy-models/contents/configs",
-        ]
-    }
+  models: {
+    primary: [
+      "https://api.github.com/repos/whoswhip/aimmy-models/contents/models",
+      "https://api.github.com/repos/Babyhamsta/aimmy/contents/models",
+    ],
+    backup: [
+      "https://api.github.com/repos/whoswhip/aimmy/contents/models",
+      "https://git.whoswhip.dev/api/v1/repos/whoswhip/aimmy-models/contents/models",
+    ],
+  },
+  configs: {
+    primary: [
+      "https://api.github.com/repos/whoswhip/aimmy-models/contents/configs",
+      "https://api.github.com/repos/Babyhamsta/aimmy/contents/configs",
+    ],
+    backup: [
+      "https://api.github.com/repos/whoswhip/aimmy/contents/configs",
+      "https://git.whoswhip.dev/api/v1/repos/whoswhip/aimmy-models/contents/configs",
+    ],
+  },
 };
 const CONFIG = {
-    models: {
-        title: "Every Aimmy Model",
-        documentTitle: "Aimmy Models",
-        linkHref: "?type=configs",
-        linkText: "Configs"
-    },
-    configs: {
-        title: "Every Aimmy Config",
-        documentTitle: "Aimmy Configs",
-        linkHref: "?type=models",
-        linkText: "Models"
-    }
+  models: {
+    title: "Every Aimmy Model",
+    documentTitle: "Aimmy Models",
+    linkHref: "?type=configs",
+    linkText: "Configs",
+  },
+  configs: {
+    title: "Every Aimmy Config",
+    documentTitle: "Aimmy Configs",
+    linkHref: "?type=models",
+    linkText: "Models",
+  },
 };
 
 let files = [];
@@ -42,598 +42,637 @@ let currentType = "models";
 let contextMenuTarget = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-    initializePage();
+  initializePage();
 });
 
 function initializePage() {
-    const urlParams = new URLSearchParams(window.location.search);
-    currentType = urlParams.get("type") || "models";
+  const urlParams = new URLSearchParams(window.location.search);
+  currentType = urlParams.get("type") || "models";
 
-    updatePageForType(currentType);
+  updatePageForType(currentType);
 
-    const rawHash = window.location.hash.substring(1);
-    if (rawHash) {
-        const decoded = decodeURIComponent(rawHash);
-        const searchValue = decoded.split('?')[0].toLowerCase();
-        document.getElementById("search").value = searchValue;
-    }
+  const rawHash = window.location.hash.substring(1);
+  if (rawHash) {
+    const decoded = decodeURIComponent(rawHash);
+    const searchValue = decoded.split("?")[0].toLowerCase();
+    document.getElementById("search").value = searchValue;
+  }
 
-    fetchMetadata().then(() => getFiles()).then(() => {
-        if (rawHash) {
-            search();
+  fetchMetadata()
+    .then(() => getFiles())
+    .then(() => {
+      if (rawHash) {
+        search();
+      }
+      if (urlParams.has("model")) {
+        let model = urlParams.get("model");
+        let modelName = decodeURIComponent(model.split("@")[0]); // model filename
+        let modelHash = model.split("@")[1]; // first 6 characters of the hash
+        document.getElementById("search").value = `h:${modelHash}`;
+        search();
+        let file = files.find(
+          (f) => f.name === modelName && f.sha.startsWith(modelHash),
+        );
+        if (file) {
+          window.open(file.download_url);
+          window.location.assign(file.download_url);
         }
-        if (urlParams.has("model")) {
-            let model = urlParams.get("model");
-            let modelName = decodeURIComponent(model.split('@')[0]); // model filename
-            let modelHash = model.split('@')[1];                     // first 6 characters of the hash
-            document.getElementById("search").value = `h:${modelHash}`;
-            search();
-            let file = files.find(f => f.name === modelName && f.sha.startsWith(modelHash));
-            if (file) {
-                window.open(file.download_url);
-                window.location.assign(file.download_url);
-            }
-        }
+      }
     });
 }
 
 function updatePageForType(type) {
-    const elements = {
-        header: document.querySelector("h1"),
-        typeLink: document.getElementById("cfg-onnx")
-    };
+  const elements = {
+    header: document.querySelector("h1"),
+    typeLink: document.getElementById("cfg-onnx"),
+  };
 
-    const typeConfig = CONFIG[type] || CONFIG.models;
+  const typeConfig = CONFIG[type] || CONFIG.models;
 
-    elements.header.textContent = typeConfig.title;
-    document.title = typeConfig.documentTitle;
-    elements.typeLink.href = typeConfig.linkHref;
-    elements.typeLink.textContent = typeConfig.linkText;
+  elements.header.textContent = typeConfig.title;
+  document.title = typeConfig.documentTitle;
+  elements.typeLink.href = typeConfig.linkHref;
+  elements.typeLink.textContent = typeConfig.linkText;
 }
 
 async function getFiles() {
-    const endpoints = API_ENDPOINTS[currentType];
-    if (!endpoints) {
-        console.error(`No endpoints configured for type: ${currentType}`);
-        return;
+  const endpoints = API_ENDPOINTS[currentType];
+  if (!endpoints) {
+    console.error(`No endpoints configured for type: ${currentType}`);
+    return;
+  }
+
+  files = [];
+  document.getElementById("files").innerHTML = "";
+  updateFileCount();
+
+  try {
+    const success = await fetchFromEndpoints(endpoints.primary);
+    if (!success && endpoints.backup) {
+      console.log("All primary endpoints failed, trying backup endpoints...");
+      await fetchFromEndpoints(endpoints.backup);
     }
 
-    files = [];
-    document.getElementById("files").innerHTML = "";
-    updateFileCount();
+    files.sort((a, b) => a.name.localeCompare(b.name));
+    await updateFilesWithMetadata();
 
-    try {
-        const success = await fetchFromEndpoints(endpoints.primary);
-        if (!success && endpoints.backup) {
-            console.log('All primary endpoints failed, trying backup endpoints...');
-            await fetchFromEndpoints(endpoints.backup);
-        }
-
-        files.sort((a, b) => a.name.localeCompare(b.name));
-        await updateFilesWithMetadata();
-
-
-        files.forEach(model => {
-            addFileToDOM(model);
-        });
-    } catch (error) {
-        console.error('All endpoints failed:', error);
-    }
+    files.forEach((model) => {
+      addFileToDOM(model);
+    });
+  } catch (error) {
+    console.error("All endpoints failed:", error);
+  }
 }
 
 async function updateFilesWithMetadata() {
-    if (!fileMetadata) return;
-    if (!ONNXmetadata) return;
-    const metadataMap = new Map();
-    const onnxMetadataMap = new Map();
-    fileMetadata.forEach(entry => {
-        metadataMap.set(entry.sha1, entry);
-    });
-    ONNXmetadata.forEach(entry => {
-        onnxMetadataMap.set(entry.Hash, entry);
-    });
+  if (!fileMetadata) return;
+  if (!ONNXmetadata) return;
+  const metadataMap = new Map();
+  const onnxMetadataMap = new Map();
+  fileMetadata.forEach((entry) => {
+    metadataMap.set(entry.sha1, entry);
+  });
+  ONNXmetadata.forEach((entry) => {
+    onnxMetadataMap.set(entry.Hash, entry);
+  });
 
-    files = files.map(file => {
-        const metadataEntry = metadataMap.get(file.sha);
-        const onnxEntry = onnxMetadataMap.get(file.sha);
-        return {
-            ...file,
-            metadata: metadataEntry || null,
-            onnxMetadata: onnxEntry || null
-        };
-    });
+  files = files.map((file) => {
+    const metadataEntry = metadataMap.get(file.sha);
+    const onnxEntry = onnxMetadataMap.get(file.sha);
+    return {
+      ...file,
+      metadata: metadataEntry || null,
+      onnxMetadata: onnxEntry || null,
+    };
+  });
 }
 
-
 async function fetchMetadata() {
-    const metadataUrl = `/models/metadata.json`;
-    try {
-        const response = await fetch(metadataUrl);
-        if (!response.ok) {
-            throw new Error(`HTTP error status: ${response.status}`);
-        }
-        ONNXmetadata = await response.json();
-    } catch (error) {
-        console.error('Failed to fetch metadata:', error);
+  const metadataUrl = `/models/metadata.json`;
+  try {
+    const response = await fetch(metadataUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP error status: ${response.status}`);
     }
-    fileMetadata = await fetchAndParseMetadata('/tools/discord-file-scraper/metadata.dat');
+    ONNXmetadata = await response.json();
+  } catch (error) {
+    console.error("Failed to fetch metadata:", error);
+  }
+
+  try {
+    const response = await fetch("/tools/discord-file-scraper/metadata.json");
+    if (!response.ok) {
+      throw new Error(`HTTP error status: ${response.status}`);
+    }
+    const entries = await response.json();
+    fileMetadata = Array.isArray(entries) ? entries : [];
+  } catch (error) {
+    console.error("Failed to fetch file metadata:", error);
+    fileMetadata = [];
+  }
 }
 
 async function fetchFromEndpoints(urls) {
-    let hasSuccess = false;
-    const fetchPromises = urls.map(url =>
-        fetchSingleEndpoint(url)
-            .then(() => {
-                hasSuccess = true;
-            })
-            .catch(error => {
-                console.log(`Failed to fetch from ${url}:`, error);
-            })
-    );
+  let hasSuccess = false;
+  const fetchPromises = urls.map((url) =>
+    fetchSingleEndpoint(url)
+      .then(() => {
+        hasSuccess = true;
+      })
+      .catch((error) => {
+        console.log(`Failed to fetch from ${url}:`, error);
+      }),
+  );
 
-    await Promise.allSettled(fetchPromises);
-    return hasSuccess;
+  await Promise.allSettled(fetchPromises);
+  return hasSuccess;
 }
 
 async function fetchSingleEndpoint(url) {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`HTTP error status: ${response.status}`);
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP error status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const existingHashes = new Set(files.map((f) => f.sha));
+  const allowedExtensions = [".onnx", ".pt", ".cfg"];
+
+  data.forEach((model) => {
+    const hasAllowedExtension = allowedExtensions.some((ext) =>
+      model.name.toLowerCase().endsWith(ext),
+    );
+
+    if (hasAllowedExtension) {
+      files.push(model);
+      existingHashes.add(model.sha);
     }
+  });
 
-    const data = await response.json();
-    const existingHashes = new Set(files.map(f => f.sha));
-    const allowedExtensions = ['.onnx', '.pt', '.cfg'];
-
-    data.forEach(model => {
-        const hasAllowedExtension = allowedExtensions.some(ext =>
-            model.name.toLowerCase().endsWith(ext)
-        );
-
-        if (hasAllowedExtension) {
-            files.push(model);
-            existingHashes.add(model.sha);
-        }
-    });
-
-    updateFileCount();
+  updateFileCount();
 }
 
 function addFileToDOM(model) {
-    const fileUrl = model.download_url;
-    const fileExtension = model.name.split('.').pop().toLowerCase();
-    let fileName = model.name.split("_~~")[0].replace(/_/g, ' ');
-    if (fileName.toLowerCase().endsWith(`.${fileExtension}`) === false) {
-        fileName += `.${fileExtension}`;
-    }
+  const fileUrl = model.download_url;
+  const fileExtension = model.name.split(".").pop().toLowerCase();
+  let fileName = model.name.split("_~~")[0].replace(/_/g, " ");
+  if (fileName.toLowerCase().endsWith(`.${fileExtension}`) === false) {
+    fileName += `.${fileExtension}`;
+  }
 
-    const fileSize = formatBytes(model.size);
-    const fileDateObj = getSmallestDateFromMetadata(model) || null;
-    const fileDate = fileDateObj ? fileDateObj.toISOString().split('T')[0] : '';
+  const fileSize = formatBytes(model.size);
+  const fileDateObj = getSmallestDateFromMetadata(model) || null;
+  const fileDate = fileDateObj ? fileDateObj.toISOString().split("T")[0] : "";
 
-    const fileHtml = `<a href="${fileUrl}"><span class="file-name">${fileName}</span> <span class="file-date">${fileDate}</span> <span class="file-size">${fileSize}</span></a>`;
-    const fileElement = document.createElement("li");
-    fileElement.className = "file-item";
-    fileElement.innerHTML = fileHtml;
-    fileElement.setAttribute('data-sha', model.sha);
-    fileElement.setAttribute('data-url', fileUrl);
-    fileElement.setAttribute('data-name', model.name);
-    fileElement.addEventListener('contextmenu', showContextMenu);
-    document.getElementById("files").appendChild(fileElement);
+  const fileHtml = `<a href="${fileUrl}"><span class="file-name">${fileName}</span> <span class="file-date">${fileDate}</span> <span class="file-size">${fileSize}</span></a>`;
+  const fileElement = document.createElement("li");
+  fileElement.className = "file-item";
+  fileElement.innerHTML = fileHtml;
+  fileElement.setAttribute("data-sha", model.sha);
+  fileElement.setAttribute("data-url", fileUrl);
+  fileElement.setAttribute("data-name", model.name);
+  fileElement.addEventListener("contextmenu", showContextMenu);
+  document.getElementById("files").appendChild(fileElement);
 }
 
 function updateFileCount(count = files.length) {
-    const typeLabel = currentType.charAt(0).toUpperCase() + currentType.slice(1);
-    document.getElementById("count").innerHTML = `${count} ${typeLabel}`;
+  const typeLabel = currentType.charAt(0).toUpperCase() + currentType.slice(1);
+  document.getElementById("count").innerHTML = `${count} ${typeLabel}`;
 }
 
 function search() {
-    let search = document.getElementById("search").value.trim().toLowerCase();
-    let filteredFiles = files;
+  let search = document.getElementById("search").value.trim().toLowerCase();
+  let filteredFiles = files;
 
-    if (search) {
-        window.location.hash = encodeURIComponent(search);
-    } else {
-        history.replaceState(null, null, ' ');
+  if (search) {
+    window.location.hash = encodeURIComponent(search);
+  } else {
+    history.replaceState(null, null, " ");
+  }
+
+  let sortApplied = false;
+
+  const filters = [
+    {
+      test: /!unique/,
+      apply: (files) =>
+        Array.from(new Map(files.map((file) => [file.sha, file])).values()),
+      clean: (s) => s.replace("!unique", "").trim(),
+    },
+    {
+      test: /sort:size/,
+      apply: (files) => {
+        sortApplied = true;
+        return files.slice().sort((a, b) => a.size - b.size);
+      },
+      clean: (s) => s.replace("sort:size", "").trim(),
+    },
+    {
+      test: /sort:-size/,
+      apply: (files) => {
+        sortApplied = true;
+        return files.slice().sort((a, b) => b.size - a.size);
+      },
+      clean: (s) => s.replace("sort:-size", "").trim(),
+    },
+    {
+      test: /sort:name/,
+      apply: (files) => {
+        sortApplied = true;
+        return files.slice().sort((a, b) => a.name.localeCompare(b.name));
+      },
+      clean: (s) => s.replace("sort:name", "").trim(),
+    },
+    {
+      test: /sort:-name/,
+      apply: (files) => {
+        sortApplied = true;
+        return files.slice().sort((a, b) => b.name.localeCompare(a.name));
+      },
+      clean: (s) => s.replace("sort:-name", "").trim(),
+    },
+    {
+      test: /sort:date/,
+      apply: (files) => {
+        sortApplied = true;
+        return files.slice().sort((a, b) => {
+          const dateA = getSmallestDateFromMetadata(a) || new Date(0);
+          const dateB = getSmallestDateFromMetadata(b) || new Date(0);
+          return dateA - dateB;
+        });
+      },
+      clean: (s) => s.replace("sort:date", "").trim(),
+    },
+    {
+      test: /sort:-date/,
+      apply: (files) => {
+        sortApplied = true;
+        return files.slice().sort((a, b) => {
+          const dateA = getSmallestDateFromMetadata(a) || new Date(0);
+          const dateB = getSmallestDateFromMetadata(b) || new Date(0);
+          return dateB - dateA;
+        });
+      },
+      clean: (s) => s.replace("sort:-date", "").trim(),
+    },
+    {
+      test: /(imagesize|imgsz):(>=|<=|>|<)?(\d+)/,
+      apply: (files, match) => {
+        if (!ONNXmetadata) return files;
+        const operator = match[2] || "=";
+        const targetSize = parseInt(match[3]);
+        return files.filter((file) => {
+          const metaEntry = ONNXmetadata.find((meta) => meta.Hash === file.sha);
+          if (
+            metaEntry &&
+            metaEntry.ImageSize &&
+            Array.isArray(metaEntry.ImageSize)
+          ) {
+            const imageSize = metaEntry.ImageSize[0];
+            switch (operator) {
+              case ">":
+                return imageSize > targetSize;
+              case ">=":
+                return imageSize >= targetSize;
+              case "<":
+                return imageSize < targetSize;
+              case "<=":
+                return imageSize <= targetSize;
+              default:
+                return metaEntry.ImageSize.includes(targetSize);
+            }
+          }
+          return false;
+        });
+      },
+      clean: (s) => s.replace(/(imagesize|imgsz):(>=|<=|>|<)?\d+/, "").trim(),
+    },
+    {
+      test: /labels:(>=|<=|>|<|)?(\d+)/,
+      apply: (files, match) => {
+        if (!ONNXmetadata) return files;
+        const operator = match[1] || "=";
+        const targetCount = parseInt(match[2]);
+        return files.filter((file) => {
+          const metaEntry = ONNXmetadata.find((meta) => meta.Hash === file.sha);
+          if (metaEntry && metaEntry.Labels) {
+            let labelCount = 0;
+            try {
+              let fixedLabels = metaEntry.Labels.replace(/'/g, '"').replace(
+                /(\d+):/g,
+                '"$1":',
+              );
+              const labelsObj = JSON.parse(fixedLabels);
+              labelCount = Object.keys(labelsObj).length;
+            } catch (e) {
+              labelCount = 0;
+            }
+            switch (operator) {
+              case ">":
+                return labelCount > targetCount;
+              case ">=":
+                return labelCount >= targetCount;
+              case "<":
+                return labelCount < targetCount;
+              case "<=":
+                return labelCount <= targetCount;
+              default:
+                return labelCount === targetCount;
+            }
+          }
+          return false;
+        });
+      },
+      clean: (s) => s.replace(/labels:(>=|<=|>|<|)?\d+/, "").trim(),
+    },
+    {
+      test: /repo:([a-zA-Z0-9._-]+(?:\/[a-zA-Z0-9._-]+)?)/,
+      apply: (files, match) => {
+        const repoIdentifier = match[1].toLowerCase();
+        return files.filter((file) => {
+          const url = file.download_url.toLowerCase();
+          if (repoIdentifier.includes("/")) {
+            return url.includes(`/${repoIdentifier}/`);
+          }
+          const urlRepoMatch = url.match(/\/repos\/[^\/]+\/([^\/]+)\//);
+          if (urlRepoMatch) {
+            const urlRepoName = urlRepoMatch[1];
+            return (
+              urlRepoName === repoIdentifier ||
+              urlRepoName.includes(repoIdentifier)
+            );
+          }
+          return url.includes(repoIdentifier);
+        });
+      },
+      clean: (s) => s.replace(/repo:[a-zA-Z0-9._\/-]+/, "").trim(),
+    },
+    {
+      test: /dynamic:(true|false)/,
+      apply: (files, match) => {
+        if (!ONNXmetadata) return files;
+        const isDynamic = match[1] === "true";
+        return files.filter((file) => {
+          const metaEntry = ONNXmetadata.find((meta) => meta.Hash === file.sha);
+          if (!metaEntry) return false;
+          let argsDynamic = null;
+          if (metaEntry.Args) {
+            try {
+              let fixedArgs = metaEntry.Args.replace(/'/g, '"')
+                .replace(/\bnone\b/gi, "null")
+                .toLowerCase();
+              const argsObj = JSON.parse(fixedArgs);
+              argsDynamic = argsObj.dynamic;
+            } catch (e) {
+              argsDynamic = null;
+            }
+          }
+          if (argsDynamic !== null) {
+            return argsDynamic === isDynamic;
+          }
+          return metaEntry.Dynamic === isDynamic;
+        });
+      },
+      clean: (s) => s.replace(/dynamic:(true|false)/, "").trim(),
+    },
+    {
+      test: /simplified:(true|false)/,
+      apply: (files, match) => {
+        if (!ONNXmetadata) return files;
+        const isSimplified = match[1] === "true";
+        return files.filter((file) => {
+          const metaEntry = ONNXmetadata.find((meta) => meta.Hash === file.sha);
+          if (!metaEntry) return false;
+          let argsSimplified = null;
+          if (metaEntry.Args) {
+            try {
+              let fixedArgs = metaEntry.Args.replace(/'/g, '"')
+                .replace(/\bnone\b/gi, "null")
+                .toLowerCase();
+              const argsObj = JSON.parse(fixedArgs);
+              argsSimplified = argsObj.simplify;
+            } catch (e) {
+              argsSimplified = null;
+            }
+          }
+          if (argsSimplified !== null) {
+            return argsSimplified === isSimplified;
+          }
+          return metaEntry.Simplified === isSimplified;
+        });
+      },
+      clean: (s) => s.replace(/simplified:(true|false)/, "").trim(),
+    },
+    {
+      test: /(?:githash|h|gh|hash):([a-z0-9]+)/,
+      apply: (files, match) =>
+        files.filter((file) => file.sha.includes(match[1])),
+      clean: (s) => s.replace(/(?:githash|h|gh|hash):[a-z0-9]+/, "").trim(),
+    },
+  ];
+
+  for (const filter of filters) {
+    let match = search.match(filter.test);
+    if (match) {
+      filteredFiles = filter.apply(filteredFiles, match);
+      search = filter.clean(search);
     }
+  }
 
-    let sortApplied = false;
+  if (search.trim()) {
+    filteredFiles = filteredFiles.filter((file) =>
+      file.name.toLowerCase().includes(search),
+    );
+  }
 
-    const filters = [
-        {
-            test: /!unique/,
-            apply: (files) => Array.from(new Map(files.map(file => [file.sha, file])).values()),
-            clean: (s) => s.replace("!unique", "").trim()
-        },
-        {
-            test: /sort:size/,
-            apply: (files) => {
-                sortApplied = true;
-                return files.slice().sort((a, b) => a.size - b.size);
-            },
-            clean: (s) => s.replace("sort:size", "").trim()
-        },
-        {
-            test: /sort:-size/,
-            apply: (files) => {
-                sortApplied = true;
-                return files.slice().sort((a, b) => b.size - a.size);
-            },
-            clean: (s) => s.replace("sort:-size", "").trim()
-        },
-        {
-            test: /sort:name/,
-            apply: (files) => {
-                sortApplied = true;
-                return files.slice().sort((a, b) => a.name.localeCompare(b.name));
-            },
-            clean: (s) => s.replace("sort:name", "").trim()
-        },
-        {
-            test: /sort:-name/,
-            apply: (files) => {
-                sortApplied = true;
-                return files.slice().sort((a, b) => b.name.localeCompare(a.name));
-            },
-            clean: (s) => s.replace("sort:-name", "").trim()
-        },
-        {
-            test: /sort:date/,
-            apply: (files) => {
-                sortApplied = true;
-                return files.slice().sort((a, b) => {
-                    const dateA = getSmallestDateFromMetadata(a) || new Date(0);
-                    const dateB = getSmallestDateFromMetadata(b) || new Date(0);
-                    return dateA - dateB;
-                });
-            },
-            clean: (s) => s.replace("sort:date", "").trim()
-        },
-        {
-            test: /sort:-date/,
-            apply: (files) => {
-                sortApplied = true;
-                return files.slice().sort((a, b) => {
-                    const dateA = getSmallestDateFromMetadata(a) || new Date(0);
-                    const dateB = getSmallestDateFromMetadata(b) || new Date(0);
-                    return dateB - dateA;
-                });
-            },
-            clean: (s) => s.replace("sort:-date", "").trim()
-        },
-        {
-            test: /(imagesize|imgsz):(>=|<=|>|<)?(\d+)/,
-            apply: (files, match) => {
-                if (!ONNXmetadata) return files;
-                const operator = match[2] || '=';
-                const targetSize = parseInt(match[3]);
-                return files.filter(file => {
-                    const metaEntry = ONNXmetadata.find(meta => meta.Hash === file.sha);
-                    if (metaEntry && metaEntry.ImageSize && Array.isArray(metaEntry.ImageSize)) {
-                        const imageSize = metaEntry.ImageSize[0];
-                        switch (operator) {
-                            case '>': return imageSize > targetSize;
-                            case '>=': return imageSize >= targetSize;
-                            case '<': return imageSize < targetSize;
-                            case '<=': return imageSize <= targetSize;
-                            default: return metaEntry.ImageSize.includes(targetSize);
-                        }
-                    }
-                    return false;
-                });
-            },
-            clean: (s) => s.replace(/(imagesize|imgsz):(>=|<=|>|<)?\d+/, "").trim()
-        },
-        {
-            test: /labels:(>=|<=|>|<|)?(\d+)/,
-            apply: (files, match) => {
-                if (!ONNXmetadata) return files;
-                const operator = match[1] || '=';
-                const targetCount = parseInt(match[2]);
-                return files.filter(file => {
-                    const metaEntry = ONNXmetadata.find(meta => meta.Hash === file.sha);
-                    if (metaEntry && metaEntry.Labels) {
-                        let labelCount = 0;
-                        try {
-                            let fixedLabels = metaEntry.Labels
-                                .replace(/'/g, '"')
-                                .replace(/(\d+):/g, '"$1":');
-                            const labelsObj = JSON.parse(fixedLabels);
-                            labelCount = Object.keys(labelsObj).length;
-                        } catch (e) {
-                            labelCount = 0;
-                        }
-                        switch (operator) {
-                            case '>': return labelCount > targetCount;
-                            case '>=': return labelCount >= targetCount;
-                            case '<': return labelCount < targetCount;
-                            case '<=': return labelCount <= targetCount;
-                            default: return labelCount === targetCount;
-                        }
-                    }
-                    return false;
-                });
-            },
-            clean: (s) => s.replace(/labels:(>=|<=|>|<|)?\d+/, "").trim()
-        },
-        {
-            test: /repo:([a-zA-Z0-9._-]+(?:\/[a-zA-Z0-9._-]+)?)/,
-            apply: (files, match) => {
-                const repoIdentifier = match[1].toLowerCase();
-                return files.filter(file => {
-                    const url = file.download_url.toLowerCase();
-                    if (repoIdentifier.includes('/')) {
-                        return url.includes(`/${repoIdentifier}/`);
-                    }
-                    const urlRepoMatch = url.match(/\/repos\/[^\/]+\/([^\/]+)\//);
-                    if (urlRepoMatch) {
-                        const urlRepoName = urlRepoMatch[1];
-                        return urlRepoName === repoIdentifier || urlRepoName.includes(repoIdentifier);
-                    }
-                    return url.includes(repoIdentifier);
-                });
-            },
-            clean: (s) => s.replace(/repo:[a-zA-Z0-9._\/-]+/, "").trim()
-        },
-        {
-            test: /dynamic:(true|false)/,
-            apply: (files, match) => {
-                if (!ONNXmetadata) return files;
-                const isDynamic = match[1] === 'true';
-                return files.filter(file => {
-                    const metaEntry = ONNXmetadata.find(meta => meta.Hash === file.sha);
-                    if (!metaEntry) return false;
-                    let argsDynamic = null;
-                    if (metaEntry.Args) {
-                        try {
-                            let fixedArgs = metaEntry.Args
-                                .replace(/'/g, '"')
-                                .replace(/\bnone\b/gi, 'null')
-                                .toLowerCase();
-                            const argsObj = JSON.parse(fixedArgs);
-                            argsDynamic = argsObj.dynamic;
-                        } catch (e) {
-                            argsDynamic = null;
-                        }
-                    }
-                    if (argsDynamic !== null) {
-                        return argsDynamic === isDynamic;
-                    }
-                    return metaEntry.Dynamic === isDynamic;
-                });
-            },
-            clean: (s) => s.replace(/dynamic:(true|false)/, "").trim()
-        },
-        {
-            test: /simplified:(true|false)/,
-            apply: (files, match) => {
-                if (!ONNXmetadata) return files;
-                const isSimplified = match[1] === 'true';
-                return files.filter(file => {
-                    const metaEntry = ONNXmetadata.find(meta => meta.Hash === file.sha);
-                    if (!metaEntry) return false;
-                    let argsSimplified = null;
-                    if (metaEntry.Args) {
-                        try {
-                            let fixedArgs = metaEntry.Args
-                                .replace(/'/g, '"')
-                                .replace(/\bnone\b/gi, 'null')
-                                .toLowerCase();
-                            const argsObj = JSON.parse(fixedArgs);
-                            argsSimplified = argsObj.simplify;
-                        } catch (e) {
-                            argsSimplified = null;
-                        }
-                    }
-                    if (argsSimplified !== null) {
-                        return argsSimplified === isSimplified;
-                    }
-                    return metaEntry.Simplified === isSimplified;
-                });
-            },
-            clean: (s) => s.replace(/simplified:(true|false)/, "").trim()
-        },
-        {
-            test: /(?:githash|h|gh|hash):([a-z0-9]+)/,
-            apply: (files, match) => files.filter(file => file.sha.includes(match[1])),
-            clean: (s) => s.replace(/(?:githash|h|gh|hash):[a-z0-9]+/, "").trim()
-        }
-    ];
-
-    for (const filter of filters) {
-        let match = search.match(filter.test);
-        if (match) {
-            filteredFiles = filter.apply(filteredFiles, match);
-            search = filter.clean(search);
-        }
-    }
-
-    if (search.trim()) {
-        filteredFiles = filteredFiles.filter(file => file.name.toLowerCase().includes(search));
-    }
-
-    document.getElementById("files").innerHTML = "";
-    if (!sortApplied) {
-        filteredFiles.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    filteredFiles.forEach(file => {
-        addFileToDOM(file);
-    });
-    updateFileCount(filteredFiles.length);
+  document.getElementById("files").innerHTML = "";
+  if (!sortApplied) {
+    filteredFiles.sort((a, b) => a.name.localeCompare(b.name));
+  }
+  filteredFiles.forEach((file) => {
+    addFileToDOM(file);
+  });
+  updateFileCount(filteredFiles.length);
 }
 
 function showContextMenu(e) {
-    e.preventDefault();
-    contextMenuTarget = e.currentTarget;
-    const contextMenu = document.getElementById('contextMenu');
-    contextMenu.style.display = 'block';
-    const rect = contextMenu.getBoundingClientRect();
-    let left = e.pageX;
-    let top = e.pageY;
-    if (left + rect.width > window.innerWidth) {
-        left = window.innerWidth - rect.width - 10;
-    }
-    if (top + rect.height > window.innerHeight) {
-        top = window.innerHeight - rect.height - 10;
-    }
-    contextMenu.style.left = left + 'px';
-    contextMenu.style.top = top + 'px';
-    const sha = contextMenuTarget.getAttribute('data-sha');
-    const entry = files.find(f => f.sha === sha);
-    const discordLinkItem = document.getElementById('context-open-in-discord');
-    const discordLinkAppItem = document.getElementById('context-open-in-discord-app');
-    if (entry && entry.metadata && entry.metadata.messageMetadata) {
-
-        discordLinkItem.style.display = 'block';
-        discordLinkAppItem.style.display = 'block';
-    } else {
-        discordLinkItem.style.display = 'none';
-        discordLinkAppItem.style.display = 'none';
-    }
+  e.preventDefault();
+  contextMenuTarget = e.currentTarget;
+  const contextMenu = document.getElementById("contextMenu");
+  contextMenu.style.display = "block";
+  const rect = contextMenu.getBoundingClientRect();
+  let left = e.pageX;
+  let top = e.pageY;
+  if (left + rect.width > window.innerWidth) {
+    left = window.innerWidth - rect.width - 10;
+  }
+  if (top + rect.height > window.innerHeight) {
+    top = window.innerHeight - rect.height - 10;
+  }
+  contextMenu.style.left = left + "px";
+  contextMenu.style.top = top + "px";
+  const sha = contextMenuTarget.getAttribute("data-sha");
+  const entry = files.find((f) => f.sha === sha);
+  const discordLinkItem = document.getElementById("context-open-in-discord");
+  const discordLinkAppItem = document.getElementById(
+    "context-open-in-discord-app",
+  );
+  if (entry && entry.metadata && entry.metadata.messageMetadata) {
+    discordLinkItem.style.display = "block";
+    discordLinkAppItem.style.display = "block";
+  } else {
+    discordLinkItem.style.display = "none";
+    discordLinkAppItem.style.display = "none";
+  }
 }
 
 function hideContextMenu() {
-    document.getElementById('contextMenu').style.display = 'none';
-    contextMenuTarget = null;
+  document.getElementById("contextMenu").style.display = "none";
+  contextMenuTarget = null;
 }
 
 function downloadFile() {
-    if (contextMenuTarget) {
-        const url = contextMenuTarget.getAttribute('data-url');
-        window.open(url, '_blank');
-    }
-    hideContextMenu();
+  if (contextMenuTarget) {
+    const url = contextMenuTarget.getAttribute("data-url");
+    window.open(url, "_blank");
+  }
+  hideContextMenu();
 }
 
 function openInNetron() {
-    if (contextMenuTarget) {
-        const url = contextMenuTarget.getAttribute('data-url');
-        const netronUrl = `https://netron.app/?url=${encodeURIComponent(url)}`;
-        window.open(netronUrl, '_blank');
-    }
-    hideContextMenu();
+  if (contextMenuTarget) {
+    const url = contextMenuTarget.getAttribute("data-url");
+    const netronUrl = `https://netron.app/?url=${encodeURIComponent(url)}`;
+    window.open(netronUrl, "_blank");
+  }
+  hideContextMenu();
 }
 
 function copyGitHash() {
-    if (contextMenuTarget) {
-        const sha = contextMenuTarget.getAttribute('data-sha');
-        navigator.clipboard.writeText(sha)
-            .catch(err => {
-                console.error('Failed to copy GitHash:', err);
-            });
-    }
-    hideContextMenu();
+  if (contextMenuTarget) {
+    const sha = contextMenuTarget.getAttribute("data-sha");
+    navigator.clipboard.writeText(sha).catch((err) => {
+      console.error("Failed to copy GitHash:", err);
+    });
+  }
+  hideContextMenu();
 }
 
 function copyFileUrl() {
-    if (contextMenuTarget) {
-        const url = contextMenuTarget.getAttribute('data-url');
-        navigator.clipboard.writeText(url)
-            .catch(err => {
-                console.error('Failed to copy File URL:', err);
-            });
-    }
-    hideContextMenu();
+  if (contextMenuTarget) {
+    const url = contextMenuTarget.getAttribute("data-url");
+    navigator.clipboard.writeText(url).catch((err) => {
+      console.error("Failed to copy File URL:", err);
+    });
+  }
+  hideContextMenu();
 }
 
 function copyShortUrl() {
-    if (contextMenuTarget) {
-        const url = contextMenuTarget.getAttribute('data-url').split('/').pop();
-        const sha = contextMenuTarget.getAttribute('data-sha');
-        const shortName = `${url}@${sha.substring(0, 6)}`;
-        let shortUrl = `https://models.whoswhip.dev/?model=${shortName}`;
+  if (contextMenuTarget) {
+    const url = contextMenuTarget.getAttribute("data-url").split("/").pop();
+    const sha = contextMenuTarget.getAttribute("data-sha");
+    const shortName = `${url}@${sha.substring(0, 6)}`;
+    let shortUrl = `https://models.whoswhip.dev/?model=${shortName}`;
 
-        if (currentType == "configs") {
-            shortUrl = `https://models.whoswhip.dev/?model=${shortName}&type=configs`;
-        }
-
-        navigator.clipboard.writeText(shortUrl)
-            .catch(err => {
-                console.error('Failed to copy Short URL:', err);
-            });
+    if (currentType == "configs") {
+      shortUrl = `https://models.whoswhip.dev/?model=${shortName}&type=configs`;
     }
-    hideContextMenu();
+
+    navigator.clipboard.writeText(shortUrl).catch((err) => {
+      console.error("Failed to copy Short URL:", err);
+    });
+  }
+  hideContextMenu();
 }
 
 function openInDiscord(app = false) {
-    if (contextMenuTarget) {
-        const sha = contextMenuTarget.getAttribute('data-sha');
-        const entry = files.find(f => f.sha === sha);
-        if (entry && entry.metadata && entry.metadata.messageMetadata) {
-            const serverID = entry.metadata.serverID;
-            const channelID = entry.metadata.channelID;
-            const messageID = entry.metadata.messageID;
-            const discordUrl = `${app ? "discord://" : "https://"}discord.com/channels/${serverID}/${channelID}/${messageID}`;
-            if (!app) window.open(discordUrl, '_blank');
-        }
+  if (contextMenuTarget) {
+    const sha = contextMenuTarget.getAttribute("data-sha");
+    const entry = files.find((f) => f.sha === sha);
+    if (entry && entry.metadata && entry.metadata.messageMetadata) {
+      const serverID = entry.metadata.serverID;
+      const channelID = entry.metadata.channelID;
+      const messageID = entry.metadata.messageID;
+      const discordUrl = `${app ? "discord://" : "https://"}discord.com/channels/${serverID}/${channelID}/${messageID}`;
+      if (!app) window.open(discordUrl, "_blank");
     }
-    hideContextMenu();
+  }
+  hideContextMenu();
 }
 
 function copyModelInfo() {
-    if (contextMenuTarget) {
-        const sha = contextMenuTarget.getAttribute('data-sha');
-        const entry = files.find(f => f.sha === sha);
-        if (entry) {
-            navigator.clipboard.writeText(JSON.stringify(entry, (key, value) =>
-                typeof value === 'bigint' ? value.toString() : value
-                , null, 2))
-                .catch(err => {
-                    console.error('Failed to copy Model Info:', err);
-                });
-        }
+  if (contextMenuTarget) {
+    const sha = contextMenuTarget.getAttribute("data-sha");
+    const entry = files.find((f) => f.sha === sha);
+    if (entry) {
+      navigator.clipboard
+        .writeText(
+          JSON.stringify(
+            entry,
+            (key, value) =>
+              typeof value === "bigint" ? value.toString() : value,
+            null,
+            2,
+          ),
+        )
+        .catch((err) => {
+          console.error("Failed to copy Model Info:", err);
+        });
     }
-    hideContextMenu();
+  }
+  hideContextMenu();
 }
 
 function getSmallestDateFromMetadata(entry) {
-    let dates = [];
-    if (entry.metadata && entry.metadata.timestamp) {
-        dates.push(new Date(Number(entry.metadata.timestamp) * 1000));
-    }
-    if (entry.onnxMetadata && entry.onnxMetadata.Created) {
-        // "Created": "2024-01-23T15:44:39.250874",
-        dates.push(new Date(entry.onnxMetadata.Created));
-    }
-    if (dates.length === 0) {
-        return null;
-    }
-    return new Date(Math.min(...dates));
+  let dates = [];
+  if (entry.metadata && entry.metadata.timestamp) {
+    dates.push(new Date(Number(entry.metadata.timestamp) * 1000));
+  }
+  if (entry.onnxMetadata && entry.onnxMetadata.Created) {
+    // "Created": "2024-01-23T15:44:39.250874",
+    dates.push(new Date(entry.onnxMetadata.Created));
+  }
+  if (dates.length === 0) {
+    return null;
+  }
+  return new Date(Math.min(...dates));
 }
 
-document.addEventListener('click', hideContextMenu);
-document.addEventListener('scroll', hideContextMenu);
+document.addEventListener("click", hideContextMenu);
+document.addEventListener("scroll", hideContextMenu);
 
 function uniqueModal() {
-    document.getElementById('uniqueModal').classList.add('active');
+  document.getElementById("uniqueModal").classList.add("active");
 }
 
 function closeUniqueModal() {
-    document.getElementById('uniqueModal').classList.remove('active');
-    document.getElementById('resultArea').classList.remove('show');
-    document.getElementById('fileInput').value = '';
+  document.getElementById("uniqueModal").classList.remove("active");
+  document.getElementById("resultArea").classList.remove("show");
+  document.getElementById("fileInput").value = "";
 }
 
 function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+  const file = event.target.files[0];
+  if (!file) return;
 
-    document.getElementById('resultText').textContent = 'Calculating hash...';
-    document.getElementById('resultArea').classList.add('show');
+  document.getElementById("resultText").textContent = "Calculating hash...";
+  document.getElementById("resultArea").classList.add("show");
 
-    calculateSHA1(file).then(hash => {
-        document.getElementById('hashText').textContent = `SHA-1: ${hash}`;
+  calculateSHA1(file)
+    .then((hash) => {
+      document.getElementById("hashText").textContent = `SHA-1: ${hash}`;
 
-        const matchingFile = files.find(f => f.sha === hash);
+      const matchingFile = files.find((f) => f.sha === hash);
 
-        if (matchingFile) {
-            const resultText = document.getElementById('resultText');
-            resultText.textContent = '❌ File is NOT unique';
-            resultText.className = 'result-text text-error';
+      if (matchingFile) {
+        const resultText = document.getElementById("resultText");
+        resultText.textContent = "❌ File is NOT unique";
+        resultText.className = "result-text text-error";
 
-            const matchInfo = document.getElementById('matchInfo');
-            matchInfo.className = 'match-info';
-            matchInfo.innerHTML = `
+        const matchInfo = document.getElementById("matchInfo");
+        matchInfo.className = "match-info";
+        matchInfo.innerHTML = `
                     <p>
                         <strong>Match found:</strong><br>
                         Name: ${matchingFile.name}<br>
@@ -641,104 +680,116 @@ function handleFileUpload(event) {
                         Path: <a href="${matchingFile.download_url}" target="_blank">${matchingFile.path}</a>
                     </p>
                 `;
-        } else {
-            const resultText = document.getElementById('resultText');
-            resultText.textContent = '✅ File appears to be unique';
-            resultText.className = 'result-text text-success';
+      } else {
+        const resultText = document.getElementById("resultText");
+        resultText.textContent = "✅ File appears to be unique";
+        resultText.className = "result-text text-success";
 
-            const matchInfo = document.getElementById('matchInfo');
-            matchInfo.className = 'match-info';
-            matchInfo.innerHTML = `
+        const matchInfo = document.getElementById("matchInfo");
+        matchInfo.className = "match-info";
+        matchInfo.innerHTML = `
                     <p>
                         No matching SHA-1 hash found in our database.
                     </p>
                 `;
-        }
-    }).catch(error => {
-        const resultText = document.getElementById('resultText');
-        resultText.textContent = '❌ Error calculating hash';
-        resultText.className = 'result-text text-error';
-        document.getElementById('hashText').textContent = error.message;
+      }
+    })
+    .catch((error) => {
+      const resultText = document.getElementById("resultText");
+      resultText.textContent = "❌ Error calculating hash";
+      resultText.className = "result-text text-error";
+      document.getElementById("hashText").textContent = error.message;
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
+  const dropArea = document.querySelector(".file-drop-area");
 
-    const dropArea = document.querySelector('.file-drop-area');
+  ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+    dropArea.addEventListener(eventName, preventDefaults, false);
+  });
 
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, preventDefaults, false);
-    });
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
 
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
+  ["dragenter", "dragover"].forEach((eventName) => {
+    dropArea.addEventListener(
+      eventName,
+      () => dropArea.classList.add("dragover"),
+      false,
+    );
+  });
+
+  ["dragleave", "drop"].forEach((eventName) => {
+    dropArea.addEventListener(
+      eventName,
+      () => dropArea.classList.remove("dragover"),
+      false,
+    );
+  });
+
+  dropArea.addEventListener("drop", handleDrop, false);
+
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+
+    if (files.length > 0) {
+      document.getElementById("fileInput").files = files;
+      handleFileUpload({ target: { files: files } });
     }
+  }
 
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
-    });
-
-    dropArea.addEventListener('drop', handleDrop, false);
-
-    function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-
-        if (files.length > 0) {
-            document.getElementById('fileInput').files = files;
-            handleFileUpload({ target: { files: files } });
-        }
+  document.getElementById("uniqueModal").addEventListener("click", (e) => {
+    if (e.target.id === "uniqueModal") {
+      closeUniqueModal();
     }
-
-    document.getElementById('uniqueModal').addEventListener('click', (e) => {
-        if (e.target.id === 'uniqueModal') {
-            closeUniqueModal();
-        }
-    });
+  });
 });
 
 async function calculateSHA1(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = async function (e) {
-            try {
-                const arrayBuffer = e.target.result;
-                const fileContent = new Uint8Array(arrayBuffer);
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+      try {
+        const arrayBuffer = e.target.result;
+        const fileContent = new Uint8Array(arrayBuffer);
 
-                // git object format "blob <size>\0<content>"
-                const header = `blob ${fileContent.length}\0`;
-                const headerBytes = new TextEncoder().encode(header);
+        // git object format "blob <size>\0<content>"
+        const header = `blob ${fileContent.length}\0`;
+        const headerBytes = new TextEncoder().encode(header);
 
-                const gitObject = new Uint8Array(headerBytes.length + fileContent.length);
-                gitObject.set(headerBytes, 0);
-                gitObject.set(fileContent, headerBytes.length);
+        const gitObject = new Uint8Array(
+          headerBytes.length + fileContent.length,
+        );
+        gitObject.set(headerBytes, 0);
+        gitObject.set(fileContent, headerBytes.length);
 
-                const hashBuffer = await crypto.subtle.digest('SHA-1', gitObject);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                resolve(hashHex);
-            } catch (error) {
-                reject(error);
-            }
-        };
-        reader.onerror = function () {
-            reject(new Error('Failed to read file'));
-        };
-        reader.readAsArrayBuffer(file);
-    });
+        const hashBuffer = await crypto.subtle.digest("SHA-1", gitObject);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+        resolve(hashHex);
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.onerror = function () {
+      reject(new Error("Failed to read file"));
+    };
+    reader.readAsArrayBuffer(file);
+  });
 }
 
 function formatBytes(bytes) {
-    const units = ['bytes', 'KB', 'MB', 'GB', 'TB'];
-    let unitIndex = 0;
-    while (bytes >= 1024 && unitIndex < units.length - 1) {
-        bytes /= 1024;
-        unitIndex++;
-    }
-    return `${bytes.toFixed(2)} ${units[unitIndex]}`;
+  const units = ["bytes", "KB", "MB", "GB", "TB"];
+  let unitIndex = 0;
+  while (bytes >= 1024 && unitIndex < units.length - 1) {
+    bytes /= 1024;
+    unitIndex++;
+  }
+  return `${bytes.toFixed(2)} ${units[unitIndex]}`;
 }

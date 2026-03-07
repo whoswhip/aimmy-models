@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 class Program
 {
@@ -16,17 +17,21 @@ class Program
 
     static readonly HttpClient client = new HttpClient();
     static readonly string[] acceptedExtensions = { "onnx", "pt", "cfg" };
+    static readonly string metadataJsonPath = "metadata.json";
+    static readonly string legacyMetadataPath = "metadata.dat";
     static List<AttatchmentInfo> messages = new List<AttatchmentInfo>();
     static List<FileInfo> fileInfos = new List<FileInfo>();
     static long lastMetadataTimestamp = 0;
     static long GlobalGuildId = 0;
+    static bool metadataChanged = false;
     static Dictionary<string, string> knownOriginals = new Dictionary<string, string>
     {
         { "1de5eef8c7275385cdc954c705eb2a9832190555", "Themida Arsenal (4k).onnx" },
-        { "68c4945d14148c61d1fbe493085d2f866190c837", "Universal Hamsta v3.onnx"},
-        { "f91d8a7499f3a7ab2d7e3418d515a28e610d1322", "AIOv7.onnx"},
-        { "bfceaa0f9072f09d80bee1c40a06bad17012bf99", "AIOv11.onnx"}
+        { "68c4945d14148c61d1fbe493085d2f866190c837", "Universal Hamsta v3.onnx" },
+        { "f91d8a7499f3a7ab2d7e3418d515a28e610d1322", "AIOv7.onnx" },
+        { "bfceaa0f9072f09d80bee1c40a06bad17012bf99", "AIOv11.onnx" },
     };
+
     // static Dictionary<string, string> skipFiles = new Dictionary<string, string>
     // {
     //     //{ "GIT BLOB SHA", "FILENAME" },
@@ -34,6 +39,12 @@ class Program
 
     static async Task Main(string[] args)
     {
+        if (args.Any(arg => arg == "--migrate-metadata"))
+        {
+            await MigrateMetadataAsync();
+            return;
+        }
+
         string? token = null;
         string? guildId = null;
         string? channelId = null;
@@ -49,18 +60,29 @@ class Program
         token ??= Environment.GetEnvironmentVariable("DISCORD_TOKEN");
         guildId ??= Environment.GetEnvironmentVariable("DISCORD_GUILD_ID");
         channelId ??= Environment.GetEnvironmentVariable("DISCORD_CHANNEL_ID");
-        checkDuplicates = (Environment.GetEnvironmentVariable("CHECK_DUPLICATES") ?? "false").ToLowerInvariant() == "true";
-        skipDownload = (Environment.GetEnvironmentVariable("SKIP_DOWNLOAD") ?? "false").ToLowerInvariant() == "true";
-        deleteOld = (Environment.GetEnvironmentVariable("DELETE_OLD") ?? "false").ToLowerInvariant() == "true";
-        skipOld = (Environment.GetEnvironmentVariable("SKIP_OLD") ?? "false").ToLowerInvariant() == "true";
-        if (!string.IsNullOrWhiteSpace(token) && !string.IsNullOrWhiteSpace(guildId) && !string.IsNullOrWhiteSpace(channelId))
+        checkDuplicates =
+            (Environment.GetEnvironmentVariable("CHECK_DUPLICATES") ?? "false").ToLowerInvariant()
+            == "true";
+        skipDownload =
+            (Environment.GetEnvironmentVariable("SKIP_DOWNLOAD") ?? "false").ToLowerInvariant()
+            == "true";
+        deleteOld =
+            (Environment.GetEnvironmentVariable("DELETE_OLD") ?? "false").ToLowerInvariant()
+            == "true";
+        skipOld =
+            (Environment.GetEnvironmentVariable("SKIP_OLD") ?? "false").ToLowerInvariant()
+            == "true";
+        if (
+            !string.IsNullOrWhiteSpace(token)
+            && !string.IsNullOrWhiteSpace(guildId)
+            && !string.IsNullOrWhiteSpace(channelId)
+        )
             cliOnly = true;
         if (deleteOld && skipOld)
         {
             Console.WriteLine("[!] Cannot use both DELETE_OLD and SKIP_OLD options together.");
             return;
         }
-
 
         if (args.Length == 0 && !cliOnly)
         {
@@ -71,9 +93,15 @@ class Program
             Console.Write("[?] Channel ID: ");
             channelId = Console.ReadLine()?.Trim();
 
-            if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(guildId) || string.IsNullOrWhiteSpace(channelId))
+            if (
+                string.IsNullOrWhiteSpace(token)
+                || string.IsNullOrWhiteSpace(guildId)
+                || string.IsNullOrWhiteSpace(channelId)
+            )
             {
-                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download] [--delete-old] [--skip-old] [-git-hash]");
+                Console.WriteLine(
+                    "Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download] [--delete-old] [--skip-old] [--git-hash] [--migrate-metadata]"
+                );
                 return;
             }
         }
@@ -129,15 +157,23 @@ class Program
                     cliOnly = true;
                 }
             }
-            if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(guildId) || string.IsNullOrWhiteSpace(channelId))
+            if (
+                string.IsNullOrWhiteSpace(token)
+                || string.IsNullOrWhiteSpace(guildId)
+                || string.IsNullOrWhiteSpace(channelId)
+            )
             {
-                Console.WriteLine("Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download] [--delete-old] [--skip-old] [--git-hash]");
+                Console.WriteLine(
+                    "Usage: --token <token> --guild <guild_id> --channel <channel_id> [--check-duplicates] [--skip-download] [--delete-old] [--skip-old] [--git-hash] [--migrate-metadata]"
+                );
                 return;
             }
         }
         if (cliOnly)
         {
-            Console.WriteLine($"[*] Using token: {(token.Length > 8 ? token.Substring(0, 4) + new string('*', token.Length - 8) + token.Substring(token.Length - 4) : token)}");
+            Console.WriteLine(
+                $"[*] Using token: {(token.Length > 8 ? token.Substring(0, 4) + new string('*', token.Length - 8) + token.Substring(token.Length - 4) : token)}"
+            );
             Console.WriteLine($"[*] Using guild ID: {guildId}");
             Console.WriteLine($"[*] Using channel ID: {channelId}");
             Console.WriteLine($"[*] Check duplicates: {checkDuplicates}");
@@ -183,9 +219,10 @@ class Program
                         break;
                     }
 
-                    JArray? messages = response["messages"] != null
-                        ? JArray.Parse(response["messages"]!.ToString())
-                        : null;
+                    JArray? messages =
+                        response["messages"] != null
+                            ? JArray.Parse(response["messages"]!.ToString())
+                            : null;
 
                     if (messages == null || messages.Count == 0)
                     {
@@ -207,21 +244,34 @@ class Program
                                     string? filename = attachment["filename"]?.Value<string>();
                                     if (string.IsNullOrWhiteSpace(filename))
                                         continue;
-                                    string? extension = filename.Split('.').LastOrDefault()?.ToLowerInvariant();
-                                    if (string.IsNullOrWhiteSpace(extension) || acceptedExtensions.Contains(extension))
+                                    string? extension = filename
+                                        .Split('.')
+                                        .LastOrDefault()
+                                        ?.ToLowerInvariant();
+                                    if (
+                                        string.IsNullOrWhiteSpace(extension)
+                                        || acceptedExtensions.Contains(extension)
+                                    )
                                         return true;
                                 }
                                 return false;
                             })
-                            .OrderByDescending(m => m["timestamp"]?.Value<DateTime>() ?? DateTime.MinValue)
+                            .OrderByDescending(m =>
+                                m["timestamp"]?.Value<DateTime>() ?? DateTime.MinValue
+                            )
                             .ToArray();
                         var newestMessage = newestMessageArray[0];
-                        Console.WriteLine($"[*] Newest message timestamp: {newestMessage?["timestamp"]?.Value<DateTime>()}");
-                        DateTime newestTimestamp = newestMessage?["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow;
+                        Console.WriteLine(
+                            $"[*] Newest message timestamp: {newestMessage?["timestamp"]?.Value<DateTime>()}"
+                        );
+                        DateTime newestTimestamp =
+                            newestMessage?["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow;
                         long newestUnix = ((DateTimeOffset)newestTimestamp).ToUnixTimeSeconds();
                         if (newestUnix <= lastMetadataTimestamp)
                         {
-                            Console.WriteLine("[*] Reached messages older than the latest metadata timestamp. Stopping download.");
+                            Console.WriteLine(
+                                "[*] Reached messages older than the latest metadata timestamp. Stopping download."
+                            );
                             break;
                         }
                     }
@@ -237,6 +287,8 @@ class Program
                     break;
                 }
             }
+
+            await SaveMetadataAsync();
         }
         else
         {
@@ -255,29 +307,40 @@ class Program
         {
             CheckDuplicates();
         }
-
     }
 
-    static async Task<JObject?> GetMessagesAsync(string token, string guildId, string channelId, int offset)
+    static async Task<JObject?> GetMessagesAsync(
+        string token,
+        string guildId,
+        string channelId,
+        int offset
+    )
     {
         try
         {
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri($"https://discord.com/api/v9/guilds/{guildId}/messages/search?channel_id={channelId}&has=file&offset={offset}"),
+                RequestUri = new Uri(
+                    $"https://discord.com/api/v9/guilds/{guildId}/messages/search?channel_id={channelId}&has=file&offset={offset}"
+                ),
                 Headers =
                 {
-                    { "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9175 Chrome/128.0.6613.186 Electron/32.2.7 Safari/537.36" },
-                    { "Authorization", token }
-                }
+                    {
+                        "User-Agent",
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9175 Chrome/128.0.6613.186 Electron/32.2.7 Safari/537.36"
+                    },
+                    { "Authorization", token },
+                },
             };
 
             using (var response = await client.SendAsync(request))
             {
                 if (!response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine("[!] Failed to fetch messages. Status code: " + response.StatusCode);
+                    Console.WriteLine(
+                        "[!] Failed to fetch messages. Status code: " + response.StatusCode
+                    );
                     return null;
                 }
                 var content = await response.Content.ReadAsStringAsync();
@@ -312,17 +375,37 @@ class Program
                     Console.WriteLine("[!] Attachment URL is empty.");
                     continue;
                 }
-                string? extension = attachment["filename"]?.Value<string>()?.Split('.').LastOrDefault()?.ToLowerInvariant();
+                string? extension = attachment["filename"]
+                    ?.Value<string>()
+                    ?.Split('.')
+                    .LastOrDefault()
+                    ?.ToLowerInvariant();
                 if (string.IsNullOrWhiteSpace(extension) || !acceptedExtensions.Contains(extension))
                     continue;
 
-                await DownloadAsync(url, extension, attachment, message["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow, message["author"], message["channel_id"]?.Value<long>(), message["id"]?.Value<long>());
+                await DownloadAsync(
+                    url,
+                    extension,
+                    attachment,
+                    message["timestamp"]?.Value<DateTime>() ?? DateTime.UtcNow,
+                    message["author"],
+                    message["channel_id"]?.Value<long>(),
+                    message["id"]?.Value<long>()
+                );
                 await Task.Delay(10);
             }
         }
     }
 
-    static async Task DownloadAsync(string url, string extension, JToken attachment, DateTime timestamp, JToken? author, long? channelId, long? messageId)
+    static async Task DownloadAsync(
+        string url,
+        string extension,
+        JToken attachment,
+        DateTime timestamp,
+        JToken? author,
+        long? channelId,
+        long? messageId
+    )
     {
         try
         {
@@ -330,12 +413,16 @@ class Program
             {
                 if (!response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"[!] Failed to download file from {url}. Status code: {response.StatusCode}");
+                    Console.WriteLine(
+                        $"[!] Failed to download file from {url}. Status code: {response.StatusCode}"
+                    );
                     return;
                 }
 
                 byte[] file = await response.Content.ReadAsByteArrayAsync();
-                string filename = !string.IsNullOrWhiteSpace(attachment["title"]?.Value<string>()) ? $"{attachment["title"]?.Value<string>()}.{extension}" : attachment["filename"]?.Value<string>() ?? $"{GenerateString(8)}.{extension}";
+                string filename = !string.IsNullOrWhiteSpace(attachment["title"]?.Value<string>())
+                    ? $"{attachment["title"]?.Value<string>()}.{extension}"
+                    : attachment["filename"]?.Value<string>() ?? $"{GenerateString(8)}.{extension}";
                 string filePath = Path.Combine(extension, filename);
                 byte[] hashBytes = SHABytes(file);
                 string hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
@@ -351,7 +438,9 @@ class Program
                     {
                         if (existingFileTime >= timestamp)
                         {
-                            Console.WriteLine($"[*] Skipping download, file already exists and is up to date: {filePath}");
+                            Console.WriteLine(
+                                $"[*] Skipping download, file already exists and is up to date: {filePath}"
+                            );
                             return;
                         }
                         else
@@ -365,20 +454,30 @@ class Program
                             {
                                 string nameWithoutExt = Path.GetFileNameWithoutExtension(filename);
                                 string ext = Path.GetExtension(filename);
-                                newerFilePath = Path.Combine(newerDir, $"{nameWithoutExt}_{counter}{ext}");
+                                newerFilePath = Path.Combine(
+                                    newerDir,
+                                    $"{nameWithoutExt}_{counter}{ext}"
+                                );
                                 counter++;
                             }
                             filePath = newerFilePath;
-                            Console.WriteLine($"[~] Existing file is older, saving to 'newer' directory: {filePath}");
+                            Console.WriteLine(
+                                $"[~] Existing file is older, saving to 'newer' directory: {filePath}"
+                            );
                         }
                     }
                     else
                     {
                         string nameWithoutExt = Path.GetFileNameWithoutExtension(filename);
                         string ext = Path.GetExtension(filename);
-                        string duplicateFilePath = Path.Combine(extension, $"{nameWithoutExt}_~~{hash.Substring(0, 4)}{ext}");
+                        string duplicateFilePath = Path.Combine(
+                            extension,
+                            $"{nameWithoutExt}_~~{hash.Substring(0, 4)}{ext}"
+                        );
                         filePath = duplicateFilePath;
-                        Console.WriteLine($"[~] File with same name but different content exists, saving as: {filePath}");
+                        Console.WriteLine(
+                            $"[~] File with same name but different content exists, saving as: {filePath}"
+                        );
                     }
                 }
 
@@ -389,17 +488,29 @@ class Program
                     Username = author?["username"]?.Value<string>() ?? "unknown",
                     Timestamp = timestamp,
                     UNIXTimestamp = ((DateTimeOffset)timestamp).ToUnixTimeSeconds(),
-                    OriginalFilename = !string.IsNullOrWhiteSpace(attachment["title"]?.Value<string>())
-                                        ? $"{attachment["title"]?.Value<string>()}.{extension}"
-                                        : attachment["filename"]?.Value<string>() ?? $"{GenerateString(8)}.{extension}",
+                    OriginalFilename = !string.IsNullOrWhiteSpace(
+                        attachment["title"]?.Value<string>()
+                    )
+                        ? $"{attachment["title"]?.Value<string>()}.{extension}"
+                        : attachment["filename"]?.Value<string>()
+                            ?? $"{GenerateString(8)}.{extension}",
                     Path = filePath,
-                    Hash = hash
+                    Hash = hash,
                 };
 
-                var fileInfo = new FileInfo(attatchmentInfo.OriginalFilename, hashBytes, attatchmentInfo.UNIXTimestamp, GlobalGuildId, channelId ?? 0, messageId ?? 0);
+                var fileInfo = new FileInfo(
+                    attatchmentInfo.OriginalFilename,
+                    hashBytes,
+                    attatchmentInfo.UNIXTimestamp,
+                    GlobalGuildId,
+                    channelId ?? 0,
+                    messageId ?? 0
+                );
 
                 messages.Add(attatchmentInfo);
-                Console.WriteLine($"[+] Downloaded: {filePath} by {author?["username"]?.Value<string>() ?? "unknown"} created at {timestamp}");
+                Console.WriteLine(
+                    $"[+] Downloaded: {filePath} by {author?["username"]?.Value<string>() ?? "unknown"} created at {timestamp}"
+                );
 
                 await File.WriteAllBytesAsync(filePath, file);
                 File.SetCreationTimeUtc(filePath, timestamp);
@@ -408,8 +519,8 @@ class Program
 
                 if (!FileInfo.FileInfoInList(fileInfos, fileInfo))
                 {
-                    await FileInfo.AppendFileInfoAsync("metadata.dat", fileInfo);
                     fileInfos.Add(fileInfo);
+                    metadataChanged = true;
                 }
             }
         }
@@ -419,6 +530,54 @@ class Program
             return;
         }
     }
+
+    static async Task SaveMetadataAsync()
+    {
+        if (!metadataChanged)
+            return;
+
+        await FileInfo.SaveFileInfosAsync(metadataJsonPath, fileInfos);
+        metadataChanged = false;
+        Console.WriteLine(
+            $"[*] Saved {fileInfos.Count} file metadata entries to {metadataJsonPath}."
+        );
+    }
+
+    static List<FileInfo> LoadMetadataFileInfos()
+    {
+        if (File.Exists(metadataJsonPath))
+            return FileInfo.LoadFileInfosAsync(metadataJsonPath).Result;
+
+        if (!File.Exists(legacyMetadataPath))
+            return new List<FileInfo>();
+
+        var legacyFileInfos = FileInfo.LoadLegacyFileInfosAsync(legacyMetadataPath).Result;
+        FileInfo.SaveFileInfosAsync(metadataJsonPath, legacyFileInfos).Wait();
+        Console.WriteLine($"[*] Migrated legacy metadata to {metadataJsonPath}.");
+        return legacyFileInfos;
+    }
+
+    static async Task MigrateMetadataAsync()
+    {
+        if (File.Exists(metadataJsonPath))
+        {
+            Console.WriteLine($"[*] {metadataJsonPath} already exists.");
+            return;
+        }
+
+        if (!File.Exists(legacyMetadataPath))
+        {
+            Console.WriteLine($"[!] No legacy metadata file found at {legacyMetadataPath}.");
+            return;
+        }
+
+        var legacyFileInfos = await FileInfo.LoadLegacyFileInfosAsync(legacyMetadataPath);
+        await FileInfo.SaveFileInfosAsync(metadataJsonPath, legacyFileInfos);
+        Console.WriteLine(
+            $"[*] Migrated {legacyFileInfos.Count} file metadata entries to {metadataJsonPath}."
+        );
+    }
+
     static void CheckDuplicates()
     {
         Console.WriteLine("[*] Checking for duplicate files (messages + metadata)...");
@@ -427,11 +586,14 @@ class Program
         if (!Directory.Exists(duplicatesDir))
             Directory.CreateDirectory(duplicatesDir);
 
-        var existingKeys = new HashSet<string>(messages.Select(m => m.Hash + "::" + Path.GetFileName(m.OriginalFilename)), StringComparer.OrdinalIgnoreCase);
+        var existingKeys = new HashSet<string>(
+            messages.Select(m => m.Hash + "::" + Path.GetFileName(m.OriginalFilename)),
+            StringComparer.OrdinalIgnoreCase
+        );
 
         foreach (var fi in fileInfos)
         {
-            string hashLower = BitConverter.ToString(fi.SHA1Hash).Replace("-", "").ToLowerInvariant();
+            string hashLower = fi.SHA1HashHex;
             string key = hashLower + "::" + Path.GetFileName(fi.FileName);
             if (existingKeys.Contains(key))
                 continue;
@@ -449,7 +611,7 @@ class Program
                 UNIXTimestamp = fi.Timestamp,
                 Path = resolvedPath,
                 OriginalFilename = Path.GetFileName(fi.FileName),
-                Hash = hashLower
+                Hash = hashLower,
             };
             messages.Add(attach);
             existingKeys.Add(key);
@@ -477,7 +639,9 @@ class Program
             if (knownOriginals.ContainsKey(hashLower))
             {
                 knownOriginalName = knownOriginals[hashLower];
-                Console.WriteLine($"[*] Found known original for hash {group.Key.Substring(0, 8)}: {knownOriginalName}");
+                Console.WriteLine(
+                    $"[*] Found known original for hash {group.Key.Substring(0, 8)}: {knownOriginalName}"
+                );
             }
 
             AttatchmentInfo? keepFile = null;
@@ -491,7 +655,12 @@ class Program
                     if (!string.IsNullOrEmpty(actualPath))
                     {
                         string currentFileName = Path.GetFileName(actualPath);
-                        if (currentFileName.Equals(knownOriginalName, StringComparison.OrdinalIgnoreCase))
+                        if (
+                            currentFileName.Equals(
+                                knownOriginalName,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                        )
                         {
                             keepFile = new AttatchmentInfo
                             {
@@ -502,9 +671,11 @@ class Program
                                 UNIXTimestamp = file.UNIXTimestamp,
                                 Path = actualPath,
                                 OriginalFilename = file.OriginalFilename,
-                                Hash = file.Hash
+                                Hash = file.Hash,
                             };
-                            Console.WriteLine($"    Found file with known original name: {actualPath}");
+                            Console.WriteLine(
+                                $"    Found file with known original name: {actualPath}"
+                            );
                             break;
                         }
                     }
@@ -527,7 +698,7 @@ class Program
                             UNIXTimestamp = file.UNIXTimestamp,
                             Path = actualPath,
                             OriginalFilename = file.OriginalFilename,
-                            Hash = file.Hash
+                            Hash = file.Hash,
                         };
 
                         if (!string.IsNullOrEmpty(knownOriginalName))
@@ -548,12 +719,16 @@ class Program
                                 {
                                     File.Move(actualPath, newPath);
                                     keepFile.Path = newPath;
-                                    Console.WriteLine($"    Renamed to known original: {actualPath} -> {newPath}");
+                                    Console.WriteLine(
+                                        $"    Renamed to known original: {actualPath} -> {newPath}"
+                                    );
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"    [!] Error renaming to known original: {ex.Message}");
+                                Console.WriteLine(
+                                    $"    [!] Error renaming to known original: {ex.Message}"
+                                );
                             }
                         }
                         break;
@@ -564,18 +739,25 @@ class Program
             foreach (var file in sortedFiles)
             {
                 string actualPath = FindActualFilePath(file.Path);
-                if (!string.IsNullOrEmpty(actualPath) && (keepFile == null || actualPath != keepFile.Path))
+                if (
+                    !string.IsNullOrEmpty(actualPath)
+                    && (keepFile == null || actualPath != keepFile.Path)
+                )
                 {
                     file.Path = actualPath;
                     remainingFiles.Add(file);
                 }
             }
 
-            Console.WriteLine($"[*] Processing duplicates for hash: {group.Key.Substring(0, 8)}...");
+            Console.WriteLine(
+                $"[*] Processing duplicates for hash: {group.Key.Substring(0, 8)}..."
+            );
 
             if (keepFile == null)
             {
-                Console.WriteLine($"    [!] No files found for this hash group - all may have been moved already");
+                Console.WriteLine(
+                    $"    [!] No files found for this hash group - all may have been moved already"
+                );
                 continue;
             }
 
@@ -607,14 +789,21 @@ class Program
                     string originalDuplicatePath = duplicatePath;
                     while (File.Exists(duplicatePath))
                     {
-                        string nameWithoutExt = Path.GetFileNameWithoutExtension(originalDuplicatePath);
+                        string nameWithoutExt = Path.GetFileNameWithoutExtension(
+                            originalDuplicatePath
+                        );
                         string ext = Path.GetExtension(originalDuplicatePath);
-                        duplicatePath = Path.Combine(duplicateExtensionDir, $"{nameWithoutExt}_{counter}{ext}");
+                        duplicatePath = Path.Combine(
+                            duplicateExtensionDir,
+                            $"{nameWithoutExt}_{counter}{ext}"
+                        );
                         counter++;
                     }
 
                     File.Move(actualPath, duplicatePath);
-                    Console.WriteLine($"        Moved duplicate: {actualPath} -> {duplicatePath} (from {duplicate.Timestamp})");
+                    Console.WriteLine(
+                        $"        Moved duplicate: {actualPath} -> {duplicatePath} (from {duplicate.Timestamp})"
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -628,16 +817,20 @@ class Program
 
     static string FindFileInKnownDirectories(string fileName)
     {
-        if (File.Exists(fileName)) return fileName;
+        if (File.Exists(fileName))
+            return fileName;
         foreach (var ext in acceptedExtensions)
         {
             string root = ext.TrimStart('.');
             string candidate = Path.Combine(root, fileName);
-            if (File.Exists(candidate)) return candidate;
+            if (File.Exists(candidate))
+                return candidate;
             string newer = Path.Combine(root, "newer", fileName);
-            if (File.Exists(newer)) return newer;
+            if (File.Exists(newer))
+                return newer;
             string dups = Path.Combine("duplicates", ext, fileName);
-            if (File.Exists(dups)) return dups;
+            if (File.Exists(dups))
+                return dups;
         }
         return string.Empty;
     }
@@ -648,10 +841,7 @@ class Program
 
         if (metadataOnly)
         {
-            if (!File.Exists("metadata.dat"))
-                return;
-
-            fileInfos = FileInfo.LoadFileInfosAsync("metadata.dat").Result;
+            fileInfos = LoadMetadataFileInfos();
             lastMetadataTimestamp = FileInfo.GetLatestTimestamp(fileInfos);
             Console.WriteLine($"[*] Loaded {fileInfos.Count} file metadata entries.");
             Console.WriteLine($"[*] Latest metadata timestamp: {lastMetadataTimestamp}");
@@ -672,7 +862,7 @@ class Program
             }
         }
 
-        fileInfos = FileInfo.LoadFileInfosAsync("metadata.dat").Result;
+        fileInfos = LoadMetadataFileInfos();
         lastMetadataTimestamp = FileInfo.GetLatestTimestamp(fileInfos);
         Console.WriteLine($"[*] Loaded {fileInfos.Count} file metadata entries.");
         Console.WriteLine($"[*] Loaded {messages.Count} files for processing.");
@@ -701,7 +891,7 @@ class Program
                     UNIXTimestamp = ((DateTimeOffset)timestamp).ToUnixTimeSeconds(),
                     Path = filePath,
                     OriginalFilename = filename,
-                    Hash = hash
+                    Hash = hash,
                 };
 
                 messages.Add(attachmentInfo);
@@ -718,21 +908,30 @@ class Program
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         var random = new Random();
-        return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
+        return new string(
+            Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray()
+        );
     }
+
     static string SHA(byte[] file)
     {
-        byte[] bytes = System.Text.Encoding.UTF8.GetBytes($"blob {file.Length}\0").Concat(file).ToArray();
+        byte[] bytes = System
+            .Text.Encoding.UTF8.GetBytes($"blob {file.Length}\0")
+            .Concat(file)
+            .ToArray();
         using (var sha1 = System.Security.Cryptography.SHA1.Create())
         {
             byte[] hashBytes = sha1.ComputeHash(bytes);
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
         }
     }
+
     static byte[] SHABytes(byte[] file)
     {
-        byte[] bytes = System.Text.Encoding.UTF8.GetBytes($"blob {file.Length}\0").Concat(file).ToArray();
+        byte[] bytes = System
+            .Text.Encoding.UTF8.GetBytes($"blob {file.Length}\0")
+            .Concat(file)
+            .ToArray();
         using (var sha1 = System.Security.Cryptography.SHA1.Create())
         {
             return sha1.ComputeHash(bytes);
@@ -781,7 +980,6 @@ class Program
     }
 }
 
-
 public sealed class FileInfo
 {
     private const int SHA1Length = 20;
@@ -789,8 +987,33 @@ public sealed class FileInfo
     private const int LongLength = 8;
     private const byte HasMetadataFlag = 0x01;
 
+    sealed class FileInfoRecord
+    {
+        [JsonProperty("fileName")]
+        public required string FileName { get; init; }
+
+        [JsonProperty("sha1")]
+        public required string SHA1Hash { get; init; }
+
+        [JsonProperty("timestamp")]
+        public long Timestamp { get; init; }
+
+        [JsonProperty("messageMetadata")]
+        public bool MessageMetadata { get; init; }
+
+        [JsonProperty("serverID")]
+        public string? ServerID { get; init; }
+
+        [JsonProperty("channelID")]
+        public string? ChannelID { get; init; }
+
+        [JsonProperty("messageID")]
+        public string? MessageID { get; init; }
+    }
+
     public string FileName { get; }
     public byte[] SHA1Hash { get; }
+    public string SHA1HashHex => Convert.ToHexString(SHA1Hash).ToLowerInvariant();
     public long Timestamp { get; }
     public bool MessageMetadata { get; set; } = false;
     public long ServerID { get; set; } = 0;
@@ -799,20 +1022,33 @@ public sealed class FileInfo
 
     public FileInfo(string filename, byte[] hash, long timestamp)
     {
-        if (filename is null) throw new ArgumentNullException(nameof(filename));
-        if (hash is null) throw new ArgumentNullException(nameof(hash));
-        if (hash.Length != SHA1Length) throw new ArgumentException($"Hash must be {SHA1Length} bytes long.", nameof(hash));
-
+        if (filename is null)
+            throw new ArgumentNullException(nameof(filename));
+        if (hash is null)
+            throw new ArgumentNullException(nameof(hash));
+        if (hash.Length != SHA1Length)
+            throw new ArgumentException($"Hash must be {SHA1Length} bytes long.", nameof(hash));
 
         byte[] name = System.Text.Encoding.UTF8.GetBytes(filename);
-        if (name.Length > byte.MaxValue) throw new ArgumentException($"Filename must be less than {byte.MaxValue} bytes long.", nameof(filename));
+        if (name.Length > byte.MaxValue)
+            throw new ArgumentException(
+                $"Filename must be less than {byte.MaxValue} bytes long.",
+                nameof(filename)
+            );
 
         FileName = filename;
         SHA1Hash = (byte[])hash.Clone();
         Timestamp = timestamp;
     }
 
-    public FileInfo(string filename, byte[] hash, long timestamp, long serverID, long channelID, long messageID)
+    public FileInfo(
+        string filename,
+        byte[] hash,
+        long timestamp,
+        long serverID,
+        long channelID,
+        long messageID
+    )
         : this(filename, hash, timestamp)
     {
         MessageMetadata = true;
@@ -821,47 +1057,60 @@ public sealed class FileInfo
         MessageID = messageID;
     }
 
-    public byte[] ToBytes()
+    static FileInfoRecord ToRecord(FileInfo fileInfo)
     {
-        byte[] name = System.Text.Encoding.UTF8.GetBytes(FileName);
-        if (name.Length > byte.MaxValue) throw new InvalidOperationException($"Filename must be less than {byte.MaxValue} bytes long.");
-
-        int baseSize = 1 + name.Length + SHA1Length + TimestampLength;
-        int totalSize = baseSize + 1;
-        if (MessageMetadata)
+        return new FileInfoRecord
         {
-            totalSize += LongLength * 3;
-        }
-
-        using var ms = new MemoryStream(totalSize);
-
-        ms.WriteByte((byte)name.Length);
-        ms.Write(name, 0, name.Length);
-        ms.Write(SHA1Hash, 0, SHA1Hash.Length);
-        ms.Write(BitConverter.GetBytes(Timestamp), 0, TimestampLength);
-
-        byte flags = MessageMetadata ? HasMetadataFlag : (byte)0;
-        ms.WriteByte(flags);
-
-        if (MessageMetadata)
-        {
-            ms.Write(BitConverter.GetBytes(ServerID), 0, LongLength);
-            ms.Write(BitConverter.GetBytes(ChannelID), 0, LongLength);
-            ms.Write(BitConverter.GetBytes(MessageID), 0, LongLength);
-        }
-
-        return ms.ToArray();
+            FileName = fileInfo.FileName,
+            SHA1Hash = fileInfo.SHA1HashHex,
+            Timestamp = fileInfo.Timestamp,
+            MessageMetadata = fileInfo.MessageMetadata,
+            ServerID = fileInfo.MessageMetadata ? fileInfo.ServerID.ToString() : null,
+            ChannelID = fileInfo.MessageMetadata ? fileInfo.ChannelID.ToString() : null,
+            MessageID = fileInfo.MessageMetadata ? fileInfo.MessageID.ToString() : null,
+        };
     }
 
-    public static FileInfo FromBytes(byte[] data)
+    static FileInfo FromRecord(FileInfoRecord record)
     {
-        if (data is null) throw new ArgumentNullException(nameof(data));
-        if (data.Length < 1 + SHA1Length + TimestampLength) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
+        if (record is null)
+            throw new ArgumentNullException(nameof(record));
+
+        var fileInfo = new FileInfo(
+            record.FileName,
+            Convert.FromHexString(record.SHA1Hash),
+            record.Timestamp
+        );
+
+        if (
+            record.MessageMetadata
+            && long.TryParse(record.ServerID, out long serverID)
+            && long.TryParse(record.ChannelID, out long channelID)
+            && long.TryParse(record.MessageID, out long messageID)
+        )
+        {
+            fileInfo.MessageMetadata = true;
+            fileInfo.ServerID = serverID;
+            fileInfo.ChannelID = channelID;
+            fileInfo.MessageID = messageID;
+        }
+
+        return fileInfo;
+    }
+
+    static FileInfo FromLegacyBytes(byte[] data)
+    {
+        if (data is null)
+            throw new ArgumentNullException(nameof(data));
+        if (data.Length < 1 + SHA1Length + TimestampLength)
+            throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
 
         using var ms = new MemoryStream(data);
         int nameLength = ms.ReadByte();
-        if (nameLength < 0) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
-        if (ms.Length < 1 + nameLength + SHA1Length + TimestampLength) throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
+        if (nameLength < 0)
+            throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
+        if (ms.Length < 1 + nameLength + SHA1Length + TimestampLength)
+            throw new ArgumentException("Data is too short to be a valid FileInfo.", nameof(data));
 
         byte[] name = new byte[nameLength];
         ms.Read(name, 0, nameLength);
@@ -907,18 +1156,40 @@ public sealed class FileInfo
 
     public static async Task<List<FileInfo>> LoadFileInfosAsync(string filePath)
     {
-        if (filePath is null) throw new ArgumentNullException(nameof(filePath));
+        if (filePath is null)
+            throw new ArgumentNullException(nameof(filePath));
+        if (!File.Exists(filePath))
+            return new List<FileInfo>();
+
+        string json = await File.ReadAllTextAsync(filePath);
+        if (string.IsNullOrWhiteSpace(json))
+            return new List<FileInfo>();
+
+        var records =
+            JsonConvert.DeserializeObject<List<FileInfoRecord>>(json) ?? new List<FileInfoRecord>();
+        return records.Select(FromRecord).ToList();
+    }
+
+    public static async Task<List<FileInfo>> LoadLegacyFileInfosAsync(string filePath)
+    {
+        if (filePath is null)
+            throw new ArgumentNullException(nameof(filePath));
         var fileInfos = new List<FileInfo>();
-        if (!File.Exists(filePath)) return fileInfos;
+        if (!File.Exists(filePath))
+            return fileInfos;
 
         byte[] data = await File.ReadAllBytesAsync(filePath);
         int index = 0;
         while (index < data.Length)
         {
-            if (index >= data.Length) break;
+            if (index >= data.Length)
+                break;
 
             int nameLength = data[index];
-            if (nameLength <= 0 || index + 1 + nameLength + SHA1Length + TimestampLength > data.Length)
+            if (
+                nameLength <= 0
+                || index + 1 + nameLength + SHA1Length + TimestampLength > data.Length
+            )
                 break;
 
             int minSize = 1 + nameLength + SHA1Length + TimestampLength;
@@ -939,29 +1210,34 @@ public sealed class FileInfo
 
             byte[] entryData = new byte[entrySize];
             Array.Copy(data, index, entryData, 0, entryData.Length);
-            var fileInfo = FromBytes(entryData);
+            var fileInfo = FromLegacyBytes(entryData);
             fileInfos.Add(fileInfo);
             index += entryData.Length;
         }
         return fileInfos;
     }
 
-    public static async Task AppendFileInfoAsync(string filePath, FileInfo fileInfo)
+    public static async Task SaveFileInfosAsync(string filePath, List<FileInfo> fileInfos)
     {
-        if (filePath is null) throw new ArgumentNullException(nameof(filePath));
-        if (fileInfo is null) throw new ArgumentNullException(nameof(fileInfo));
-        if (!File.Exists(filePath))
-            await File.WriteAllBytesAsync(filePath, Array.Empty<byte>());
-        byte[] data = fileInfo.ToBytes();
-        using var fs = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.None);
-        await fs.WriteAsync(data, 0, data.Length);
+        if (filePath is null)
+            throw new ArgumentNullException(nameof(filePath));
+        if (fileInfos is null)
+            throw new ArgumentNullException(nameof(fileInfos));
+
+        string json = JsonConvert.SerializeObject(
+            fileInfos.Select(ToRecord).ToList(),
+            Formatting.Indented
+        );
+        await File.WriteAllTextAsync(filePath, json + Environment.NewLine);
     }
 
     public static bool FileInfoInList(List<FileInfo> list, FileInfo fileInfo)
     {
-        return list.Any(f => f.FileName == fileInfo.FileName &&
-                            f.Timestamp == fileInfo.Timestamp &&
-                            f.SHA1Hash.SequenceEqual(fileInfo.SHA1Hash));
+        return list.Any(f =>
+            f.FileName == fileInfo.FileName
+            && f.Timestamp == fileInfo.Timestamp
+            && f.SHA1Hash.SequenceEqual(fileInfo.SHA1Hash)
+        );
     }
 
     public static long GetLatestTimestamp(List<FileInfo> list)
@@ -984,9 +1260,7 @@ public static class DotEnv
 
         foreach (var line in File.ReadAllLines(filePath))
         {
-            var parts = line.Split(
-                '=',
-                StringSplitOptions.RemoveEmptyEntries);
+            var parts = line.Split('=', StringSplitOptions.RemoveEmptyEntries);
 
             if (parts.Length != 2)
                 continue;
