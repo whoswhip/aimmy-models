@@ -884,6 +884,23 @@
     "Args": null
   },
   {
+    "Hash": "3592e9b4cdc1ea4263376dcd3bd10b50a7bdba2e",
+    "FileName": "GKs-AIOV3_~~3592.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics GKs-AIOV3 model trained on data.yaml",
+    "Created": "2026-03-12T23:41:53.287556",
+    "Version": "8.3.240",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      320,
+      320
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': 12, 'nms': False}"
+  },
+  {
     "Hash": "43fe7b50a6be9bebf646e07e969c5237dd6b84f3",
     "FileName": "BO7_Icon-RED_v2.onnx",
     "Author": "Ultralytics",
@@ -1171,6 +1188,23 @@
     ],
     "BatchSize": 1,
     "Args": null
+  },
+  {
+    "Hash": "a661e9d7827fba65091b40e8c6b0a260c14b6644",
+    "FileName": "GKs-AIOV3-320.onnx",
+    "Author": "Ultralytics",
+    "License": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "Description": "Ultralytics GKs-AIOV3 model trained on data.yaml",
+    "Created": "2026-03-12T23:41:53.287556",
+    "Version": "8.3.240",
+    "ModelType": "detect",
+    "Labels": "{0: 'item'}",
+    "ImageSize": [
+      320,
+      320
+    ],
+    "BatchSize": 1,
+    "Args": "{'batch': 1, 'half': False, 'dynamic': False, 'simplify': True, 'opset': 12, 'nms': False}"
   },
   {
     "Hash": "5f8ae729dac79c5c0b9eeeb994665efbb6e47e28",
@@ -4136,7 +4170,7 @@
     "Author": "N/A",
     "License": "N/A",
     "Description": "No description provided.",
-    "Created": "2026-03-07T22:37:44Z",
+    "Created": "2026-03-13T05:58:22Z",
     "Version": "1.9",
     "ModelType": "N/A",
     "Labels": "N/A",
